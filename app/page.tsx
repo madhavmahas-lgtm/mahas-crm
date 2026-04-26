@@ -1,367 +1,336 @@
-'use client'
-import { useState, useMemo } from "react";
+'use client';
+
+import { supabase } from "@/lib/supabase";
+import { useState, useEffect, useMemo } from "react";
 
 export default function Home() {
 
-  const TABS = [
-    "New",
-    "Modified",
-    "Follow-up 1",
-    "Follow-up 2",
-    "Follow-up Final",
-    "No Response",
-    "Booked"
-  ];
+const [enquiries, setEnquiries] = useState<any[]>([]);
 
-  const [activeTab, setActiveTab] = useState("New");
-  const [enquiries, setEnquiries] = useState<any[]>([]);
+const empty = {
+name: "", phone: "", email: "",
+checkInDate: "", checkOutDate: "",
+guestsAbove5: "", guestsBelow5: "",
+property: "Mahas Elite",
+flats: "1",
+flatsElite: "", flatsVrindavan: "",
+discount: "", discountElite: "", discountVrindavan: "",
+status: "New"
+};
 
-  const empty = {
-    name:"", phone:"", email:"",
-    checkInDate:"", checkOutDate:"",
-    guestsAbove5:"", guestsBelow5:"",
-    property:"Mahas Elite",
-    flats:"1", flatsElite:"1", flatsVrindavan:"1",
-    discount:"", discountElite:"", discountVrindavan:"",
-    status:"New"
-  };
+const [form, setForm] = useState<any>(empty);
 
-  const [form, setForm] = useState<any>(empty);
-  const [editIndex, setEditIndex] = useState<number|null>(null);
+useEffect(() => {
+fetchData();
+}, []);
 
-  const nights = useMemo(()=>{
-    if(!form.checkInDate || !form.checkOutDate) return 0;
-    return Math.max(0,(new Date(form.checkOutDate).getTime()-new Date(form.checkInDate).getTime())/(1000*60*60*24));
-  },[form.checkInDate,form.checkOutDate]);
+const fetchData = async () => {
+const { data } = await supabase
+.from("enquiries")
+.select("*")
+.order("id", { ascending: false });
 
-  const handleChange=(e:any)=>{
-    const { name, value } = e.target;
-    let updated = { ...form, [name]: value };
+setEnquiries(data || []);
+};
 
-    if(name === "property"){
-      if(value !== "Both"){
-        updated.discountElite = "";
-        updated.discountVrindavan = "";
-      } else {
-        updated.discount = "";
-      }
-    }
+const nights = useMemo(() => {
+if (!form.checkInDate || !form.checkOutDate) return 0;
+return Math.max(0,
+(new Date(form.checkOutDate).getTime() - new Date(form.checkInDate).getTime())
+/ (1000 * 60 * 60 * 24)
+);
+}, [form.checkInDate, form.checkOutDate]);
 
-    setForm(updated);
-  }
+const handleChange = (e:any) => {
+const { name, value } = e.target;
+setForm({ ...form, [name]: value });
+};
 
-  const isValid = () => {
-    if(!form.name || !form.phone) return false;
-    if(!form.checkInDate || !form.checkOutDate) return false;
-    if(!form.guestsAbove5) return false;
+const save = async () => {
+if (!form.name || !form.phone || !form.checkInDate || !form.checkOutDate) {
+alert("Fill all required fields");
+return;
+}
 
-    if(form.property === "Both"){
-      if(!form.flatsElite || !form.flatsVrindavan) return false;
-    } else {
-      if(!form.flats) return false;
-    }
+const { error } = await supabase
+.from("enquiries")
+.insert([{
+name: form.name,
+phone: form.phone,
+email: form.email || null,
+checkInDate: form.checkInDate,
+checkOutDate: form.checkOutDate,
+guestsAbove5: Number(form.guestsAbove5 || 0),
+guestsBelow5: form.guestsBelow5 ? Number(form.guestsBelow5) : null,
 
-    return true;
-  }
+property: form.property,
 
-  const save=()=>{
-    if(!isValid()){
-      alert("Please fill all mandatory fields");
-      return;
-    }
+flats: form.flats ? Number(form.flats) : null,
+flatsElite: form.flatsElite ? Number(form.flatsElite) : null,
+flatsVrindavan: form.flatsVrindavan ? Number(form.flatsVrindavan) : null,
 
-    if(editIndex!==null){
-      const arr=[...enquiries];
-      arr[editIndex]={...form,status:"Modified"};
-      setEnquiries(arr);
-      setEditIndex(null);
-      setActiveTab("Modified");
-    }else{
-      setEnquiries([...enquiries,{...form,status:"New"}]);
-      setActiveTab("New");
-    }
+discount: form.discount ? Number(form.discount) : null,
+discountElite: form.discountElite ? Number(form.discountElite) : null,
+discountVrindavan: form.discountVrindavan ? Number(form.discountVrindavan) : null,
 
-    setForm(empty);
-  }
+status: "New"
+}]);
 
-  const edit=(i:number)=>{
-    setForm(enquiries[i]);
-    setEditIndex(i);
-  }
+if (error) {
+console.error("SUPABASE ERROR:", error);
+alert(error.message);
+return;
+}
 
-  const calculatePrice = () => {
-    const g = Number(form.guestsAbove5 || 0);
+fetchData();
+setForm(empty);
+};
 
-    if(form.property === "Both"){
-      const fe = Number(form.flatsElite || 1);
-      const fv = Number(form.flatsVrindavan || 1);
+const calculatePrice = () => {
+const g = Number(form.guestsAbove5 || 0);
+const nightsNum = Number(nights || 0);
 
-      const elite = (3000*nights*fe) + (Math.max(0,g-(4*fe))*500*nights) - Number(form.discountElite||0);
-      const vr = (6000*nights*fv) + (Math.max(0,g-(6*fv))*500*nights) - Number(form.discountVrindavan||0);
+// BOTH
+if (form.property === "Both") {
+const flatsElite = Number(form.flatsElite || 1);
+const flatsVr = Number(form.flatsVrindavan || 1);
 
-      return `Elite ₹${elite} / Vrindavan ₹${vr}`;
-    }
+const eliteBase = 3000 * nightsNum * flatsElite;
+const eliteExtra = Math.max(0, g - (4 * flatsElite)) * 500 * nightsNum;
+const eliteTotal = eliteBase + eliteExtra - Number(form.discountElite || 0);
 
-    const flats = Number(form.flats || 1);
-    const baseRate = form.property === "Mahas Elite" ? 3000 : 6000;
-    const included = form.property === "Mahas Elite" ? 4 : 6;
+const vrBase = 6000 * nightsNum * flatsVr;
+const vrExtra = Math.max(0, g - (6 * flatsVr)) * 500 * nightsNum;
+const vrTotal = vrBase + vrExtra - Number(form.discountVrindavan || 0);
 
-    const total = (baseRate*nights*flats) + (Math.max(0,g-(included*flats))*500*nights) - Number(form.discount||0);
-    return `₹${total}`;
-  }
+return "Elite ₹" + eliteTotal + " / Vrindavan ₹" + vrTotal;
+}
 
-  // ✅ SEND QUOTE (FIXED FLOW + FULL MESSAGE)
-  const sendQuote=(i:number)=>{
-    setEnquiries(prev => {
-      const updated = [...prev];
-      updated[i] = { ...updated[i], status: "SentQuote" };
-      return updated;
-    });
+// SINGLE
+const flats = Number(form.flats || 1);
+const baseRate = form.property === "Mahas Elite" ? 3000 : 6000;
+const included = form.property === "Mahas Elite" ? 4 : 6;
 
-    setActiveTab("Follow-up 1");
+const extraGuests = Math.max(0, g - (included * flats));
+const extraCost = extraGuests * 500 * nightsNum;
 
-    const e = enquiries[i];
+const baseCost = baseRate * nightsNum * flats;
+const total = baseCost + extraCost - Number(form.discount || 0);
 
-    const formatDate = (d:any)=>{
-  const dt = new Date(d);
-  return `${String(dt.getDate()).padStart(2,'0')}-${dt.toLocaleString('en-IN',{month:'short'})}-${dt.getFullYear()}`;
+return "₹" + total;
+};
+
+const sendQuote = (i:number) => {
+
+const e = enquiries[i];
+
+const formatDate = (d:any) => {
+const dt = new Date(d);
+const day = String(dt.getDate()).padStart(2,'0');
+const month = dt.toLocaleString('en-IN',{month:'short'});
+const year = dt.getFullYear();
+return day + "-" + month + "-" + year;
 };
 
 const days = Math.max(0,
-  (new Date(e.checkOutDate).getTime() - new Date(e.checkInDate).getTime())/(1000*60*60*24)
+(new Date(e.checkOutDate).getTime() - new Date(e.checkInDate).getTime())
+/ (1000 * 60 * 60 * 24)
 );
 
 const g = Number(e.guestsAbove5 || 0);
 
-let msg = `Hi ${e.name} 👋
+let eliteTotal = 0;
+let vrTotal = 0;
+let total = 0;
+
+let message = `*Mahas Homestays*
+
+Property: ${e.property}
+
+Hi ${e.name} 👋
 
 📅 Check-in: ${formatDate(e.checkInDate)} (12:00 PM onwards)
 📅 Check-out: ${formatDate(e.checkOutDate)} (before 11:00 AM)
 🗓 Days: ${days}
 
 👨‍👩‍👧 Guests (>5yrs): ${e.guestsAbove5}
-👶 Guests (≤5yrs): ${e.guestsBelow5}
+👶 Guests (≤5yrs): ${e.guestsBelow5 || 0}
+
 `;
 
-if(e.property === "Both"){
+if (e.property === "Both") {
 
-  const fe = Number(e.flatsElite || 1);
-  const fv = Number(e.flatsVrindavan || 1);
+const flatsElite = Number(e.flatsElite || 1);
+const flatsVr = Number(e.flatsVrindavan || 1);
 
-  const eliteBase = 3000 * days * fe;
-  const eliteExtraGuests = Math.max(0, g - (4 * fe));
-  const eliteExtra = eliteExtraGuests * 500 * days;
-  const eliteTotal = eliteBase + eliteExtra - Number(e.discountElite || 0);
+const eliteExtraGuests = Math.max(0, g - (4 * flatsElite));
+const vrExtraGuests = Math.max(0, g - (6 * flatsVr));
 
-  const vrBase = 6000 * days * fv;
-  const vrExtraGuests = Math.max(0, g - (6 * fv));
-  const vrExtra = vrExtraGuests * 500 * days;
-  const vrTotal = vrBase + vrExtra - Number(e.discountVrindavan || 0);
+const eliteExtraCost = eliteExtraGuests * 500 * days;
+const vrExtraCost = vrExtraGuests * 500 * days;
 
-  const rec = eliteTotal <= vrTotal ? "Mahas Elite" : "Mahas Vrindavan";
+const eliteBase = 3000 * days * flatsElite;
+const vrBase = 6000 * days * flatsVr;
 
-  msg += `
-🏠 MAHAS ELITE
-Base: ${days} day(s) x ${fe} flat(s) x ₹3000 = ₹${eliteBase}
-Extra Guests: ${days} day(s) x ${eliteExtraGuests} Guest(s) x ₹500 = ₹${eliteExtra}
-Discount: ₹${e.discountElite || 0}
-💰 Total: ₹${eliteTotal} (Including 5% GST)
-⚡ Electricity: 20 units/day free, Extra unit ₹15
+const eliteBaseLine = `${days} day(s) x ${flatsElite} flat(s) x 3000 = ₹${eliteBase}`;
+const vrBaseLine = `${days} day(s) x ${flatsVr} flat(s) x 6000 = ₹${vrBase}`;
 
-🏠 MAHAS VRINDAVAN
-Base: ${days} day(s) x ${fv} flat(s) x ₹6000 = ₹${vrBase}
-Extra Guests: ${days} day(s) x ${vrExtraGuests} Guest(s) x ₹500 = ₹${vrExtra}
-Discount: ₹${e.discountVrindavan || 0}
-💰 Total: ₹${vrTotal} (Including 5% GST)
-⚡ Electricity: 30 units/day free, Extra unit ₹15
+eliteTotal = eliteBase + eliteExtraCost - Number(e.discountElite || 0);
+vrTotal = vrBase + vrExtraCost - Number(e.discountVrindavan || 0);
 
-👉 Recommended: ${rec}
+message += `🏠 *Mahas Elite*
+Flats: ${flatsElite}
+Price: ${eliteBaseLine}
+Extra Guest(s): ${days} day(s) x ${eliteExtraGuests} Guest(s) x ₹500 = ₹${eliteExtraCost}
+${Number(e.discountElite || 0) > 0 ? `Discount: ₹${e.discountElite}\n` : ""}Total: ₹${eliteTotal}
+Electricity: 20 units/day free, Extra unit ₹15
+
+🏠 *Mahas Vrindavan*
+Flats: ${flatsVr}
+Price: ${vrBaseLine}
+Extra Guest(s): ${days} day(s) x ${vrExtraGuests} Guest(s) x ₹500 = ₹${vrExtraCost}
+${Number(e.discountVrindavan || 0) > 0 ? `Discount: ₹${e.discountVrindavan}\n` : ""}Total: ₹${vrTotal}
+Electricity: 30 units/day free, Extra unit ₹15
+
 `;
 
 } else {
 
-  const flats = Number(e.flats || 1);
-  const baseRate = e.property === "Mahas Elite" ? 3000 : 6000;
-  const included = e.property === "Mahas Elite" ? 4 : 6;
+const flats = Number(e.flats || 1);
+const baseRate = e.property === "Mahas Elite" ? 3000 : 6000;
+const included = e.property === "Mahas Elite" ? 4 : 6;
 
-  const base = baseRate * days * flats;
-  const extraGuests = Math.max(0, g - (included * flats));
-  const extra = extraGuests * 500 * days;
-  const total = base + extra - Number(e.discount || 0);
+const extraGuests = Math.max(0, g - (included * flats));
+const extraCost = extraGuests * 500 * days;
 
-  const elec = e.property === "Mahas Elite"
-    ? "20 units/day free, Extra unit ₹15"
-    : "30 units/day free, Extra unit ₹15";
+const baseCost = baseRate * days * flats;
+const baseLine = `${days} day(s) x ${flats} flat(s) x ${baseRate} = ₹${baseCost}`;
 
-  msg += `
-🏠 ${e.property}
-Base: ${days} day(s) x ${flats} flat(s) x ₹${baseRate} = ₹${base}
-Extra Guests: ${days} day(s) x ${extraGuests} Guest(s) x ₹500 = ₹${extra}
-Discount: ₹${e.discount || 0}
-💰 Total: ₹${total} (Including 5% GST)
-⚡ Electricity: ${elec}
+total = baseCost + extraCost - Number(e.discount || 0);
+
+message += `🏠 *${e.property}*
+Flats: ${flats}
+Price: ${baseLine}
+Extra Guest(s): ${days} day(s) x ${extraGuests} Guest(s) x ₹500 = ₹${extraCost}
+${Number(e.discount || 0) > 0 ? `Discount: ₹${e.discount}\n` : ""}Total: ₹${total}
+Electricity: ${e.property === "Mahas Elite"
+? "20 units/day free, Extra unit ₹15"
+: "30 units/day free, Extra unit ₹15"}
+
 `;
 }
 
-msg += `
+let finalAmount = "";
 
-Please confirm to proceed 🙏`;
+if (e.property === "Both") {
+finalAmount = `Elite ₹${eliteTotal} / Vrindavan ₹${vrTotal}`;
+} else {
+finalAmount = `₹${total}`;
+}
 
-    window.open(`https://wa.me/91${e.phone}?text=${encodeURIComponent(msg)}`);
-  }
+message += `\n💰 Final Amount: ${finalAmount}\n`;
+message += `\n\nPlease confirm booking to proceed 🙏`;
 
-  const followUp = (i:number, nextStatus:string, nextTab:string)=>{
-    setEnquiries(prev => {
-      const updated = [...prev];
-      updated[i] = { ...updated[i], status: nextStatus };
-      return updated;
-    });
+window.open(`https://wa.me/91${e.phone}?text=${encodeURIComponent(message)}`);
+};
 
-    setActiveTab(nextTab);
+return (
 
-    const e = enquiries[i];
-    const msg = `Hi ${e.name} 👋\nJust following up regarding your stay 😊`;
+<div className="p-4 max-w-md mx-auto">
 
-    window.open(`https://wa.me/91${e.phone}?text=${encodeURIComponent(msg)}`);
-  }
+<h1 className="text-xl font-bold mb-3 text-center">
+Mahas Enquiry CRM
+</h1>
 
-  const markBooked=(i:number)=>{
-    setEnquiries(prev => {
-      const updated = [...prev];
-      updated[i] = { ...updated[i], status: "Booked" };
-      return updated;
-    });
-    setActiveTab("Booked");
-  }
+<input name="name" placeholder="Name"
+value={form.name} onChange={handleChange}
+className="w-full border p-2 mb-2" />
 
-  // ✅ FILTER BASED ON TAB VS STATUS
-  const filtered = enquiries.filter(e => {
+<input name="phone" placeholder="Phone"
+value={form.phone} onChange={handleChange}
+className="w-full border p-2 mb-2" />
 
-    if(activeTab === "New") return e.status === "New";
-    if(activeTab === "Follow-up 1") return e.status === "SentQuote";
-    if(activeTab === "Follow-up 2") return e.status === "Follow-up 1";
-    if(activeTab === "Follow-up Final") return e.status === "Follow-up 2";
-    if(activeTab === "No Response") return e.status === "Follow-up Final";
-    if(activeTab === "Modified") return e.status === "Modified";
-    if(activeTab === "Booked") return e.status === "Booked";
+<select name="property"
+value={form.property} onChange={handleChange}
+className="w-full border p-2 mb-2">
 
-    return false;
-  });
+<option value="Mahas Elite">Mahas Elite</option>
+<option value="Mahas Vrindavan">Mahas Vrindavan</option>
+<option value="Both">Both</option>
+</select>
 
-  return (
-    <div className="p-4 max-w-md mx-auto">
+<input type="date" name="checkInDate"
+value={form.checkInDate} onChange={handleChange}
+className="w-full border p-2 mb-2" />
 
-      <h1 className="text-xl font-bold mb-3 text-center">Mahas Enquiry CRM</h1>
+<input type="date" name="checkOutDate"
+value={form.checkOutDate} onChange={handleChange}
+className="w-full border p-2 mb-2" />
 
-      <div className="flex gap-2 overflow-x-auto mb-3">
-        {TABS.map(t=>(
-          <button key={t} onClick={()=>setActiveTab(t)} className={`px-3 py-1 border ${activeTab===t?"bg-blue-500 text-white":""}`}>
-            {t}
-          </button>
-        ))}
-      </div>
+<input name="guestsAbove5" placeholder="Guests >5"
+value={form.guestsAbove5} onChange={handleChange}
+className="w-full border p-2 mb-2" />
 
-      <div className="space-y-2">
+<input name="guestsBelow5" placeholder="Guests <=5 (optional)"
+value={form.guestsBelow5} onChange={handleChange}
+className="w-full border p-2 mb-2" />
 
-        <input name="name" placeholder="Name *" value={form.name} onChange={handleChange} className="w-full border p-2"/>
-        <input name="phone" placeholder="Phone *" value={form.phone} onChange={handleChange} className="w-full border p-2"/>
-        <input name="email" placeholder="Email (optional)" value={form.email} onChange={handleChange} className="w-full border p-2"/>
+{form.property !== "Both" && (
+<> <input name="flats" placeholder="Flats"
+value={form.flats} onChange={handleChange}
+className="w-full border p-2 mb-2" />
 
-        <select name="property" value={form.property} onChange={handleChange} className="w-full border p-2">
-          <option>Mahas Elite</option>
-          <option>Mahas Vrindavan</option>
-          <option>Both</option>
-        </select>
-
-        <input type="date" name="checkInDate" value={form.checkInDate} onChange={handleChange} className="w-full border p-2"/>
-        <input type="date" name="checkOutDate" value={form.checkOutDate} onChange={handleChange} className="w-full border p-2"/>
-
-        <input name="guestsAbove5" placeholder="Guests >5 *" value={form.guestsAbove5} onChange={handleChange} className="w-full border p-2"/>
-        <input name="guestsBelow5" placeholder="Guests ≤5 (optional)" value={form.guestsBelow5} onChange={handleChange} className="w-full border p-2"/>
-
-        {form.property === "Both" ? (
-          <>
-            <input name="flatsElite" placeholder="Flats Elite *" value={form.flatsElite} onChange={handleChange} className="w-full border p-2"/>
-            <input name="flatsVrindavan" placeholder="Flats Vrindavan *" value={form.flatsVrindavan} onChange={handleChange} className="w-full border p-2"/>
-            <input name="discountElite" placeholder="Discount Elite" value={form.discountElite} onChange={handleChange} className="w-full border p-2"/>
-            <input name="discountVrindavan" placeholder="Discount Vrindavan" value={form.discountVrindavan} onChange={handleChange} className="w-full border p-2"/>
-          </>
-        ):(
-          <>
-            <input name="flats" placeholder="Total Flats *" value={form.flats} onChange={handleChange} className="w-full border p-2"/>
-            <input name="discount" placeholder="Discount" value={form.discount} onChange={handleChange} className="w-full border p-2"/>
-          </>
-        )}
-
-        <div className="bg-gray-100 p-2">
-          Nights: {nights}
-          <br/>
-          Price: {calculatePrice()}
-        </div>
-
-        <button onClick={save} className="bg-green-500 text-white w-full p-2">Save Enquiry</button>
-      </div>
-
-      <div>
-        {filtered.map((e,i)=>(
-          <div key={i} className="border p-3 mt-3">
-            <b>{e.name}</b><br/>
-            {e.property}<br/>
-            Status: {e.status}
-
-            <button onClick={()=>edit(i)} className="w-full bg-gray-300 mt-2">Edit</button>
-
-            {e.status === "New" && (
-              <button onClick={()=>sendQuote(i)} className="w-full bg-green-500 text-white mt-2">Send Quote</button>
-            )}
-
-            {/* Follow-up 1 */}
-{e.status === "SentQuote" && (
-  <button
-    onClick={()=>followUp(i,"Follow-up 1","Follow-up 2")}
-    className="w-full bg-yellow-400 mt-2"
-  >
-    Follow-up 1
-  </button>
+<input name="discount" placeholder="Discount"
+value={form.discount} onChange={handleChange}
+className="w-full border p-2 mb-2" />
+</>
 )}
 
-{/* Follow-up 2 */}
-{e.status === "Follow-up 1" && (
-  <button
-    onClick={()=>followUp(i,"Follow-up 2","Follow-up Final")}
-    className="w-full bg-yellow-500 mt-2"
-  >
-    Follow-up 2
-  </button>
+{form.property === "Both" && (
+<>
+<input name="flatsElite" placeholder="Elite Flats"
+value={form.flatsElite || ""}
+onChange={handleChange}
+className="w-full border p-2 mb-2" />
+
+<input name="flatsVrindavan" placeholder="Vrindavan Flats"
+value={form.flatsVrindavan || ""}
+onChange={handleChange}
+className="w-full border p-2 mb-2" />
+
+<input name="discountElite" placeholder="Elite Discount"
+value={form.discountElite || ""}
+onChange={handleChange}
+className="w-full border p-2 mb-2" />
+
+<input name="discountVrindavan" placeholder="Vrindavan Discount"
+value={form.discountVrindavan || ""}
+onChange={handleChange}
+className="w-full border p-2 mb-2" />
+</>
 )}
 
-{/* Follow-up Final */}
-{e.status === "Follow-up 2" && (
-  <button
-    onClick={()=>followUp(i,"Follow-up Final","No Response")}
-    className="w-full bg-orange-500 mt-2"
-  >
-    Follow-up Final
-  </button>
-)}
+<div className="bg-gray-100 p-2 mb-2">
+Nights: {nights} <br />
+Price: {calculatePrice()}
+</div>
 
-{/* No Response */}
-{e.status === "Follow-up Final" && (
-  <button
-    onClick={()=>followUp(i,"No Response","No Response")}
-    className="w-full bg-red-500 mt-2"
-  >
-    Mark No Response
-  </button>
-)}
+<button onClick={save}
+className="bg-green-500 text-white w-full p-2 mb-3">
+Save Enquiry </button>
 
-            {e.status !== "Booked" && (
-              <button onClick={()=>markBooked(i)} className="w-full bg-blue-500 text-white mt-2">Mark Booked</button>
-            )}
-          </div>
-        ))}
-      </div>
+{enquiries.map((e,i)=>(
 
-    </div>
-  );
+<div key={i} className="border p-2 mb-2">
+{e.name} - {e.phone}
+<button
+onClick={()=>sendQuote(i)}
+className="block w-full bg-blue-500 text-white mt-2">
+Send Quote
+</button>
+</div>
+))}
+
+</div>
+);
 }
