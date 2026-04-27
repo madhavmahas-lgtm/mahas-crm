@@ -1,10 +1,19 @@
 'use client';
 
+/* =========================
+SECTION 1: IMPORTS
+========================= */
 import { supabase } from "@/lib/supabase";
 import { useState, useEffect, useMemo } from "react";
 
+/* =========================
+SECTION 2: MAIN COMPONENT
+========================= */
 export default function Home() {
 
+/* =========================
+SECTION 3: STATE & DEFAULTS
+========================= */
 const [enquiries, setEnquiries] = useState<any[]>([]);
 
 const empty = {
@@ -20,10 +29,16 @@ status: "New"
 
 const [form, setForm] = useState<any>(empty);
 
+/* =========================
+SECTION 4: INITIAL LOAD
+========================= */
 useEffect(() => {
 fetchData();
 }, []);
 
+/* =========================
+SECTION 5: FETCH DATA
+========================= */
 const fetchData = async () => {
 const { data } = await supabase
 .from("enquiries")
@@ -33,6 +48,9 @@ const { data } = await supabase
 setEnquiries(data || []);
 };
 
+/* =========================
+SECTION 6: CALCULATE NIGHTS
+========================= */
 const nights = useMemo(() => {
 if (!form.checkInDate || !form.checkOutDate) return 0;
 return Math.max(0,
@@ -41,12 +59,19 @@ return Math.max(0,
 );
 }, [form.checkInDate, form.checkOutDate]);
 
+/* =========================
+SECTION 7: HANDLE INPUT
+========================= */
 const handleChange = (e:any) => {
 const { name, value } = e.target;
 setForm({ ...form, [name]: value });
 };
 
+/* =========================
+SECTION 8: SAVE ENQUIRY
+========================= */
 const save = async () => {
+
 if (!form.name || !form.phone || !form.checkInDate || !form.checkOutDate) {
 alert("Fill all required fields");
 return;
@@ -77,7 +102,7 @@ status: "New"
 }]);
 
 if (error) {
-console.error("SUPABASE ERROR:", error);
+console.error(error);
 alert(error.message);
 return;
 }
@@ -86,68 +111,68 @@ fetchData();
 setForm(empty);
 };
 
+/* =========================
+SECTION 9: PRICE CALCULATION
+========================= */
 const calculatePrice = () => {
 const g = Number(form.guestsAbove5 || 0);
 const nightsNum = Number(nights || 0);
 
-// BOTH
 if (form.property === "Both") {
-const flatsElite = Number(form.flatsElite || 1);
-const flatsVr = Number(form.flatsVrindavan || 1);
+
+const flatsElite = form.flatsElite ? Number(form.flatsElite) : 1;
+const flatsVr = form.flatsVrindavan ? Number(form.flatsVrindavan) : 1;
 
 const eliteBase = 3000 * nightsNum * flatsElite;
 const eliteExtra = Math.max(0, g - (4 * flatsElite)) * 500 * nightsNum;
-const eliteTotal = eliteBase + eliteExtra - Number(form.discountElite || 0);
+
+const eliteExtraGuests = Math.max(0, g - (4 * flatsElite));
+const eliteDiscount = Number(form.discountElite || 0);
+const eliteTotal = eliteBase + eliteExtra - eliteDiscount;
 
 const vrBase = 6000 * nightsNum * flatsVr;
 const vrExtra = Math.max(0, g - (6 * flatsVr)) * 500 * nightsNum;
-const vrTotal = vrBase + vrExtra - Number(form.discountVrindavan || 0);
+const vrDiscount = Number(form.discountVrindavan || 0);
+const vrTotal = vrBase + vrExtra - vrDiscount;
 
 return "Elite ₹" + eliteTotal + " / Vrindavan ₹" + vrTotal;
 }
 
-// SINGLE
 const flats = Number(form.flats || 1);
 const baseRate = form.property === "Mahas Elite" ? 3000 : 6000;
 const included = form.property === "Mahas Elite" ? 4 : 6;
 
+const baseCost = baseRate * nightsNum * flats;
 const extraGuests = Math.max(0, g - (included * flats));
+
 const extraCost = extraGuests * 500 * nightsNum;
 
-const baseCost = baseRate * nightsNum * flats;
-const total = baseCost + extraCost - Number(form.discount || 0);
+const discount = Number(form.discount || 0);
 
-return "₹" + total;
-};
+const total = baseCost + extraCost - discount;
 
+return "₹" + total;};
+
+/* =========================
+SECTION 10: SEND QUOTE
+========================= */
 const sendQuote = (i:number) => {
 
-const e = enquiries[i];
+  const e = enquiries[i];
+  const formatDate = (d:any) => {
+    const dt = new Date(d);
+    const day = String(dt.getDate()).padStart(2,'0');
+    const month = dt.toLocaleString('en-IN',{month:'short'});
+    const year = dt.getFullYear();
+    return day + "-" + month + "-" + year;
+  };
 
-const formatDate = (d:any) => {
-const dt = new Date(d);
-const day = String(dt.getDate()).padStart(2,'0');
-const month = dt.toLocaleString('en-IN',{month:'short'});
-const year = dt.getFullYear();
-return day + "-" + month + "-" + year;
-};
+  const days = Math.max(0,
+    (new Date(e.checkOutDate).getTime() - new Date(e.checkInDate).getTime())
+    / (1000 * 60 * 60 * 24)
+  );
 
-const days = Math.max(0,
-(new Date(e.checkOutDate).getTime() - new Date(e.checkInDate).getTime())
-/ (1000 * 60 * 60 * 24)
-);
-
-const g = Number(e.guestsAbove5 || 0);
-
-let eliteTotal = 0;
-let vrTotal = 0;
-let total = 0;
-
-let message = `*Mahas Homestays*
-
-Property: ${e.property}
-
-Hi ${e.name} 👋
+  let message = `Hi ${e.name} 👋
 
 📅 Check-in: ${formatDate(e.checkInDate)} (12:00 PM onwards)
 📅 Check-out: ${formatDate(e.checkOutDate)} (before 11:00 AM)
@@ -158,82 +183,99 @@ Hi ${e.name} 👋
 
 `;
 
-if (e.property === "Both") {
+/* =========================
+SECTION 10A: UPDATE STATUS
+========================= */
+const updateStatus = async (id:number, newStatus:string) => {
 
-const flatsElite = Number(e.flatsElite || 1);
-const flatsVr = Number(e.flatsVrindavan || 1);
+  const { error } = await supabase
+    .from("enquiries")
+    .update({ status: newStatus })
+    .eq("id", id);
 
-const eliteExtraGuests = Math.max(0, g - (4 * flatsElite));
-const vrExtraGuests = Math.max(0, g - (6 * flatsVr));
+  if (error) {
+    alert("Error updating status");
+    return;
+  }
 
-const eliteExtraCost = eliteExtraGuests * 500 * days;
-const vrExtraCost = vrExtraGuests * 500 * days;
-
-const eliteBase = 3000 * days * flatsElite;
-const vrBase = 6000 * days * flatsVr;
-
-const eliteBaseLine = `${days} day(s) x ${flatsElite} flat(s) x 3000 = ₹${eliteBase}`;
-const vrBaseLine = `${days} day(s) x ${flatsVr} flat(s) x 6000 = ₹${vrBase}`;
-
-eliteTotal = eliteBase + eliteExtraCost - Number(e.discountElite || 0);
-vrTotal = vrBase + vrExtraCost - Number(e.discountVrindavan || 0);
-
-message += `🏠 *Mahas Elite*
-Flats: ${flatsElite}
-Price: ${eliteBaseLine}
-Extra Guest(s): ${days} day(s) x ${eliteExtraGuests} Guest(s) x ₹500 = ₹${eliteExtraCost}
-${Number(e.discountElite || 0) > 0 ? `Discount: ₹${e.discountElite}\n` : ""}Total: ₹${eliteTotal}
-Electricity: 20 units/day free, Extra unit ₹15
-
-🏠 *Mahas Vrindavan*
-Flats: ${flatsVr}
-Price: ${vrBaseLine}
-Extra Guest(s): ${days} day(s) x ${vrExtraGuests} Guest(s) x ₹500 = ₹${vrExtraCost}
-${Number(e.discountVrindavan || 0) > 0 ? `Discount: ₹${e.discountVrindavan}\n` : ""}Total: ₹${vrTotal}
-Electricity: 30 units/day free, Extra unit ₹15
-
-`;
-
-} else {
-
-const flats = Number(e.flats || 1);
-const baseRate = e.property === "Mahas Elite" ? 3000 : 6000;
-const included = e.property === "Mahas Elite" ? 4 : 6;
-
-const extraGuests = Math.max(0, g - (included * flats));
-const extraCost = extraGuests * 500 * days;
-
-const baseCost = baseRate * days * flats;
-const baseLine = `${days} day(s) x ${flats} flat(s) x ${baseRate} = ₹${baseCost}`;
-
-total = baseCost + extraCost - Number(e.discount || 0);
-
-message += `🏠 *${e.property}*
-Flats: ${flats}
-Price: ${baseLine}
-Extra Guest(s): ${days} day(s) x ${extraGuests} Guest(s) x ₹500 = ₹${extraCost}
-${Number(e.discount || 0) > 0 ? `Discount: ₹${e.discount}\n` : ""}Total: ₹${total}
-Electricity: ${e.property === "Mahas Elite"
-? "20 units/day free, Extra unit ₹15"
-: "30 units/day free, Extra unit ₹15"}
-
-`;
-}
-
-let finalAmount = "";
-
-if (e.property === "Both") {
-finalAmount = `Elite ₹${eliteTotal} / Vrindavan ₹${vrTotal}`;
-} else {
-finalAmount = `₹${total}`;
-}
-
-message += `\n💰 Final Amount: ${finalAmount}\n`;
-message += `\n\nPlease confirm booking to proceed 🙏`;
-
-window.open(`https://wa.me/91${e.phone}?text=${encodeURIComponent(message)}`);
+  fetchData();
 };
 
+  // ===== PRICE LOGIC =====
+
+  if (e.property === "Both") {
+
+    const flatsElite = e.flatsElite || 1;
+    const flatsVr = e.flatsVrindavan || 1;
+const eliteExtraGuests = Math.max(0, e.guestsAbove5 - (4 * flatsElite));
+const vrExtraGuests = Math.max(0, e.guestsAbove5 - (6 * flatsVr));
+
+    const eliteBase = 3000 * days * flatsElite;
+    const eliteExtra = Math.max(0, e.guestsAbove5 - (4 * flatsElite)) * 500 * days;
+    const eliteDiscount = e.discountElite || 0;
+    const eliteTotal = eliteBase + eliteExtra - eliteDiscount;
+
+    const vrBase = 6000 * days * flatsVr;
+    const vrExtra = Math.max(0, e.guestsAbove5 - (6 * flatsVr)) * 500 * days;
+    const vrDiscount = e.discountVrindavan || 0;
+    const vrTotal = vrBase + vrExtra - vrDiscount;
+
+    message += `🏠 Mahas Elite
+Price: ${days} day(s) X ${flatsElite} flat(s) X 3000 = ${eliteBase}
+Extra: ${eliteExtraGuests} guest(s) × ${days} day(s) × ₹500 = ₹${eliteExtra}
+Discount: ₹${eliteDiscount}
+Total: ₹${eliteTotal}
+
+⚡ Electricity: 20 units/day free, Extra ₹15/unit
+
+🏠 Mahas Vrindavan
+Price: ${days} day(s) X ${flatsVr} flat(s) X 6000 = ${vrBase}
+Extra: ${vrExtraGuests} guest(s) × ${days} day(s) × ₹500 = ₹${vrExtra}
+Discount: ₹${vrDiscount}
+Total: ₹${vrTotal}
+
+⚡ Electricity: 30 units/day free, Extra ₹15/unit
+`;
+
+  } else {
+
+    const flats = e.flats || 1;
+    const baseRate = e.property === "Mahas Elite" ? 3000 : 6000;
+    const included = e.property === "Mahas Elite" ? 4 : 6;
+const extraGuests = Math.max(0, e.guestsAbove5 - (included * flats));
+    const base = baseRate * days * flats;
+    const extra = Math.max(0, e.guestsAbove5 - (included * flats)) * 500 * days;
+
+    const discount = e.discount || 0;
+    const total = base + extra - discount;
+
+    message += `🏠 ${e.property}
+
+Price: ${days} day(s) X ${flats} flat(s) X ${baseRate} = ${base}
+Extra: ${extraGuests} guest(s) × ${days} day(s) × ₹500 = ₹${extra}
+Discount: ₹${discount}
+Total: ₹${total}
+
+⚡ Electricity: ${
+      e.property === "Mahas Elite"
+        ? "20 units/day free, Extra ₹15/unit"
+        : "30 units/day free, Extra ₹15/unit"
+    }
+`;
+  }
+
+  message += `
+
+Please confirm to proceed 🙏`;
+
+  window.open(`https://wa.me/91${e.phone}?text=${encodeURIComponent(message)}`);
+
+  // CRM update
+  updateStatus(e.id, "SentQuote");
+};
+/* =========================
+SECTION 11: UI
+========================= */
 return (
 
 <div className="p-4 max-w-md mx-auto">
@@ -241,6 +283,8 @@ return (
 <h1 className="text-xl font-bold mb-3 text-center">
 Mahas Enquiry CRM
 </h1>
+
+{/* ===== FORM START ===== */}
 
 <input name="name" placeholder="Name"
 value={form.name} onChange={handleChange}
@@ -275,6 +319,7 @@ className="w-full border p-2 mb-2" />
 value={form.guestsBelow5} onChange={handleChange}
 className="w-full border p-2 mb-2" />
 
+{/* SINGLE */}
 {form.property !== "Both" && (
 <> <input name="flats" placeholder="Flats"
 value={form.flats} onChange={handleChange}
@@ -286,6 +331,7 @@ className="w-full border p-2 mb-2" />
 </>
 )}
 
+{/* BOTH */}
 {form.property === "Both" && (
 <>
 <input name="flatsElite" placeholder="Elite Flats"
@@ -319,15 +365,25 @@ Price: {calculatePrice()}
 className="bg-green-500 text-white w-full p-2 mb-3">
 Save Enquiry </button>
 
+{/* ===== ENQUIRY LIST ===== */}
+
 {enquiries.map((e,i)=>(
 
 <div key={i} className="border p-2 mb-2">
+
+<div className="font-semibold">
 {e.name} - {e.phone}
+</div>
+
+<div className="text-sm text-gray-500 mb-2">
+Status: {e.status}
+</div>
+
 <button
 onClick={()=>sendQuote(i)}
-className="block w-full bg-blue-500 text-white mt-2">
-Send Quote
-</button>
+className="block w-full bg-blue-500 text-white">
+Send Quote </button>
+
 </div>
 ))}
 
