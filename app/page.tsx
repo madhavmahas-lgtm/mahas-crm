@@ -14,6 +14,8 @@ export default function Home() {
 /* =========================
 SECTION 3: STATE & DEFAULTS
 ========================= */
+const [activeTab, setActiveTab] = useState("New");
+
 const [enquiries, setEnquiries] = useState<any[]>([]);
 
 const empty = {
@@ -286,6 +288,42 @@ return (
 Mahas Enquiry CRM
 </h1>
 
+<div className="flex gap-2 mb-3">
+
+  <button
+    onClick={() => setActiveTab("New")}
+    className={`px-3 py-1 ${activeTab === "New" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+  >
+   New ({enquiries.filter(e => e.status === "New").length})
+  </button>
+
+  <button
+    onClick={() => setActiveTab("Follow")}
+    className={`px-3 py-1 ${activeTab === "Follow" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+  >
+    Follow-ups ({enquiries.filter(e =>
+  ["SentQuote","FollowUp1","FollowUp2"].includes(e.status)
+).length})
+  </button>
+
+  <button
+    onClick={() => setActiveTab("Closed")}
+    className={`px-3 py-1 ${activeTab === "Closed" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+  >
+    Closed ({enquiries.filter(e =>
+  ["Final","NoResponse"].includes(e.status)
+).length})
+  </button>
+
+  <button
+    onClick={() => setActiveTab("Booked")}
+    className={`px-3 py-1 ${activeTab === "Booked" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+  >
+    Booked ({enquiries.filter(e => e.status === "Booked").length})
+  </button>
+
+</div>
+
 {/* ===== FORM START ===== */}
 
 <label className="block text-sm font-medium">Name</label>
@@ -409,11 +447,38 @@ Price: {calculatePrice()}
 </button>
 
 
-{/* ===== ENQUIRY LIST ===== */}
+{/* ===== SECTION 12: ENQUIRY LIST ===== */}
 
-{enquiries.map((e, i) => (
 
-  <div key={i} className="border p-2 mb-2">
+{enquiries
+  .filter((e) => {
+
+    if (activeTab === "New") {
+      return e.status === "New";
+    }
+
+    if (activeTab === "Follow") {
+      return ["SentQuote", "FollowUp1", "FollowUp2"].includes(e.status);
+    }
+
+    if (activeTab === "Closed") {
+      return ["Final", "NoResponse"].includes(e.status);
+    }
+
+    if (activeTab === "Booked") {
+      return e.status === "Booked";
+    }
+
+    return true;
+  })
+  .map((e, i) => (
+
+  <div
+  key={i}
+  className={`border p-2 mb-2 ${
+    e.status === "Booked" ? "border-green-500 bg-green-50" : ""
+  }`}
+>
 
     <div className="font-semibold">
       {e.name} - {e.phone}
@@ -423,12 +488,123 @@ Price: {calculatePrice()}
       Status: {e.status}
     </div>
 
+<div className="text-xs text-gray-400">
+  ID: {e.id}
+</div>
+
+    {/* ===== ACTION BUTTONS ===== */}
+
+{/* NEW */}
+{e.status === "New" && (
+  <>
     <button
       onClick={() => sendQuote(i)}
-      className="block w-full bg-blue-500 text-white"
+      className="w-full bg-blue-500 text-white mb-1"
     >
       Send Quote
     </button>
+
+    <button
+      onClick={() => updateStatus(e.id, "Booked")}
+      className="w-full bg-green-600 text-white"
+    >
+      Booked
+    </button>
+  </>
+)}
+
+{/* SENT QUOTE */}
+{e.status === "SentQuote" && (
+  <>
+    <button
+      onClick={() => updateStatus(e.id, "FollowUp1")}
+      className="w-full bg-yellow-500 text-white mb-1"
+    >
+      Follow Up 1
+    </button>
+
+    <button
+      onClick={() => updateStatus(e.id, "Booked")}
+      className="w-full bg-green-600 text-white"
+    >
+      Booked
+    </button>
+  </>
+)}
+
+{/* FOLLOW UP 1 */}
+{e.status === "FollowUp1" && (
+  <>
+    <button
+      onClick={() => updateStatus(e.id, "FollowUp2")}
+      className="w-full bg-orange-500 text-white mb-1"
+    >
+      Follow Up 2
+    </button>
+
+    <button
+      onClick={() => updateStatus(e.id, "Booked")}
+      className="w-full bg-green-600 text-white"
+    >
+      Booked
+    </button>
+  </>
+)}
+
+{/* FOLLOW UP 2 */}
+{e.status === "FollowUp2" && (
+  <>
+    <button
+      onClick={() => updateStatus(e.id, "Final")}
+      className="w-full bg-purple-500 text-white mb-1"
+    >
+      Final
+    </button>
+
+    <button
+      onClick={() => updateStatus(e.id, "Booked")}
+      className="w-full bg-green-600 text-white"
+    >
+      Booked
+    </button>
+  </>
+)}
+
+{/* FINAL */}
+{e.status === "Final" && (
+  <>
+    <button
+      onClick={() => updateStatus(e.id, "NoResponse")}
+      className="w-full bg-gray-500 text-white mb-1"
+    >
+      No Response
+    </button>
+
+    <button
+      onClick={() => updateStatus(e.id, "Booked")}
+      className="w-full bg-green-600 text-white"
+    >
+      Booked
+    </button>
+  </>
+)}
+
+{/* NO RESPONSE */}
+{e.status === "NoResponse" && (
+  <button
+    onClick={() => updateStatus(e.id, "Booked")}
+    className="w-full bg-green-600 text-white"
+  >
+    Booked
+  </button>
+)}
+
+{/* BOOKED */}
+{e.status === "Booked" && (
+  <div className="text-green-600 font-semibold">
+    ✅ Booked
+  </div>
+)}
 
   </div>
 
