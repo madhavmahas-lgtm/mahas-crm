@@ -1,22 +1,3 @@
-/*
-========================================
-MAHAS CRM - VERSION 1 (FROZEN)
-Date: 2026-04-29
-
-Features:
-✔ Enquiry Create
-✔ Edit / Update
-✔ Delete
-✔ WhatsApp Quote
-✔ Follow-up Flow
-✔ Booking Status
-✔ Pricing Engine (Elite / Vrindavan / Both)
-✔ Tabs (New / Follow / Closed / Booked)
-
-DO NOT MODIFY THIS FILE
-========================================
-*/
-
 'use client';
 
 /* =========================
