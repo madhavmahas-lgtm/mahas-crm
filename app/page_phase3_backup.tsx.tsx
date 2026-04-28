@@ -156,21 +156,6 @@ return "₹" + total;};
 /* =========================
 SECTION 10: SEND QUOTE
 ========================= */
-const updateStatus = async (id:number, newStatus:string) => {
-
-  const { error } = await supabase
-    .from("enquiries")
-    .update({ status: newStatus })
-    .eq("id", id);
-
-  if (error) {
-    alert("Error updating status");
-    return;
-  }
-
-  fetchData();
-};
-
 const sendQuote = (i:number) => {
 
   const e = enquiries[i];
@@ -201,6 +186,21 @@ const sendQuote = (i:number) => {
 /* =========================
 SECTION 10A: UPDATE STATUS
 ========================= */
+const updateStatus = async (id:number, newStatus:string) => {
+
+  const { error } = await supabase
+    .from("enquiries")
+    .update({ status: newStatus })
+    .eq("id", id);
+
+  if (error) {
+    alert("Error updating status");
+    return;
+  }
+
+  fetchData();
+};
+
   // ===== PRICE LOGIC =====
 
   if (e.property === "Both") {
@@ -278,85 +278,54 @@ SECTION 11: UI
 ========================= */
 return (
 
-<div
-  autoComplete="off"
-  className="p-4 max-w-md mx-auto"
->
+<div className="p-4 max-w-md mx-auto">
+
 <h1 className="text-xl font-bold mb-3 text-center">
 Mahas Enquiry CRM
 </h1>
 
 {/* ===== FORM START ===== */}
 
-<label className="block text-sm font-medium">Name</label>
-<input
-  name="name"
-  placeholder="Enter name"
-  autoComplete="off"
-  value={form.name}
-  onChange={handleChange}
-  className="w-full border p-2 mb-2"
-/>
+<input name="name" placeholder="Name"
+value={form.name} onChange={handleChange}
+className="w-full border p-2 mb-2" />
 
-<label className="block text-sm font-medium">Phone</label>
-<input
-  name="phone"
-  placeholder="Enter phone"
-  autoComplete="off"
-  value={form.phone}
-  onChange={handleChange}
-  className="w-full border p-2 mb-2"
-/>
+<input name="phone" placeholder="Phone"
+value={form.phone} onChange={handleChange}
+className="w-full border p-2 mb-2" />
 
-<label className="block text-sm font-medium">Property</label>
-<select
-  name="property"
-  value={form.property}
-  onChange={handleChange}
-  className="w-full border p-2 mb-2"
->
+<select name="property"
+value={form.property} onChange={handleChange}
+className="w-full border p-2 mb-2">
 
 <option value="Mahas Elite">Mahas Elite</option>
 <option value="Mahas Vrindavan">Mahas Vrindavan</option>
 <option value="Both">Both</option>
 </select>
 
-<label className="block text-sm font-medium">Check-In Date</label>
 <input type="date" name="checkInDate"
-autoComplete="off"
 value={form.checkInDate} onChange={handleChange}
 className="w-full border p-2 mb-2" />
 
-<label className="block text-sm font-medium">Check-Out Date</label>
 <input type="date" name="checkOutDate"
-autoComplete="off"
 value={form.checkOutDate} onChange={handleChange}
 className="w-full border p-2 mb-2" />
 
-<label className="block text-sm font-medium">Guests (&gt;5 yrs)</label>
 <input name="guestsAbove5" placeholder="Guests >5"
-autoComplete="off"
 value={form.guestsAbove5} onChange={handleChange}
 className="w-full border p-2 mb-2" />
 
-<label className="block text-sm font-medium">Guests (≤5 yrs)</label>
 <input name="guestsBelow5" placeholder="Guests <=5 (optional)"
-autoComplete="off"
 value={form.guestsBelow5} onChange={handleChange}
 className="w-full border p-2 mb-2" />
 
 {/* SINGLE */}
 {form.property !== "Both" && (
-<> 
-<label className="block text-sm font-medium">Flats</label>
-<input name="flats" placeholder="Flats"
-autoComplete="off"
+<> <input name="flats" placeholder="Flats"
 value={form.flats} onChange={handleChange}
 className="w-full border p-2 mb-2" />
 
-<label className="block text-sm font-medium">Discount</label>
 <input name="discount" placeholder="Discount"
-autoComplete="off"
 value={form.discount} onChange={handleChange}
 className="w-full border p-2 mb-2" />
 </>
@@ -365,30 +334,22 @@ className="w-full border p-2 mb-2" />
 {/* BOTH */}
 {form.property === "Both" && (
 <>
-<label className="block text-sm font-medium">Elite Flats</label>
 <input name="flatsElite" placeholder="Elite Flats"
-autoComplete="off"
 value={form.flatsElite || ""}
 onChange={handleChange}
 className="w-full border p-2 mb-2" />
 
-<label className="block text-sm font-medium">Vrindavan Flats</label>
 <input name="flatsVrindavan" placeholder="Vrindavan Flats"
-autoComplete="off"
 value={form.flatsVrindavan || ""}
 onChange={handleChange}
 className="w-full border p-2 mb-2" />
 
-<label className="block text-sm font-medium">Elite Discount</label>
 <input name="discountElite" placeholder="Elite Discount"
-autoComplete="off"
 value={form.discountElite || ""}
 onChange={handleChange}
 className="w-full border p-2 mb-2" />
 
-<label className="block text-sm font-medium">Vrindavan Discount</label>
 <input name="discountVrindavan" placeholder="Vrindavan Discount"
-autoComplete="off"
 value={form.discountVrindavan || ""}
 onChange={handleChange}
 className="w-full border p-2 mb-2" />
@@ -400,41 +361,32 @@ Nights: {nights} <br />
 Price: {calculatePrice()}
 </div>
 
-<button
-  type="button"
-  onClick={save}
-  className="bg-green-500 text-white w-full p-2 mb-3"
->
-  Save Enquiry
-</button>
-
+<button onClick={save}
+className="bg-green-500 text-white w-full p-2 mb-3">
+Save Enquiry </button>
 
 {/* ===== ENQUIRY LIST ===== */}
 
-{enquiries.map((e, i) => (
+{enquiries.map((e,i)=>(
 
-  <div key={i} className="border p-2 mb-2">
+<div key={i} className="border p-2 mb-2">
 
-    <div className="font-semibold">
-      {e.name} - {e.phone}
-    </div>
+<div className="font-semibold">
+{e.name} - {e.phone}
+</div>
 
-    <div className="text-sm text-gray-500 mb-2">
-      Status: {e.status}
-    </div>
+<div className="text-sm text-gray-500 mb-2">
+Status: {e.status}
+</div>
 
-    <button
-      onClick={() => sendQuote(i)}
-      className="block w-full bg-blue-500 text-white"
-    >
-      Send Quote
-    </button>
+<button
+onClick={()=>sendQuote(i)}
+className="block w-full bg-blue-500 text-white">
+Send Quote </button>
 
-  </div>
-
+</div>
 ))}
 
-</div>  
-
+</div>
 );
 }
