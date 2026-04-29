@@ -441,8 +441,7 @@ return (
 
 <div
   ref={formRef}
-  autoComplete="off"
-   className={`p-4 max-w-md mx-auto ${
+    className={`p-4 max-w-md mx-auto ${
     editId ? "border-2 border-yellow-400 bg-yellow-50" : ""
   }`}
 >
