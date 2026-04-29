@@ -33,9 +33,6 @@ export default function Home() {
 /* =========================
 SECTION 3: STATE & DEFAULTS
 ========================= */
-const [isLoggedIn, setIsLoggedIn] = useState(false);
-const [password, setPassword] = useState("");
-
 const [activeTab, setActiveTab] = useState("New");
 
 const [enquiries, setEnquiries] = useState<any[]>([]);
@@ -437,51 +434,11 @@ SECTION 10A: UPDATE STATUS
 
 
 };
-
-const handleLogin = () => {
-  if (password === "ChHa0511!") {
-    setIsLoggedIn(true);
-    localStorage.setItem("loggedIn", "true");
-  } else {
-    alert("Wrong password");
-  }
-};
-
-useEffect(() => {
-  if (localStorage.getItem("loggedIn") === "true") {
-    setIsLoggedIn(true);
-  }
-}, []);
-
 /* =========================
 SECTION 11: UI
 ========================= */
-if (!isLoggedIn) {
-  return (
-    <div className="p-6 max-w-sm mx-auto mt-20">
-      <h2 className="text-xl font-bold mb-4 text-center">
-        Mahas CRM Login
-      </h2>
-
-      <input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        className="w-full border p-2 mb-3"
-        placeholder="Enter Password"
-      />
-
-      <button
-        onClick={handleLogin}
-        className="w-full bg-blue-600 text-white p-2"
-      >
-        Login
-      </button>
-    </div>
-  );
-}
-
 return (
+
 <div
   ref={formRef}
     className={`p-4 max-w-md mx-auto ${
