@@ -453,6 +453,30 @@ useEffect(() => {
   }
 }, []);
 
+useEffect(() => {
+  let timer: any;
+
+  const resetTimer = () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      localStorage.removeItem("loggedIn");
+      setIsLoggedIn(false);
+      alert("Session expired. Please login again.");
+    }, 30 * 60 * 1000); // 30 minutes
+  };
+
+  window.addEventListener("click", resetTimer);
+  window.addEventListener("keydown", resetTimer);
+
+  resetTimer();
+
+  return () => {
+    clearTimeout(timer);
+    window.removeEventListener("click", resetTimer);
+    window.removeEventListener("keydown", resetTimer);
+  };
+}, []);
+
 /* =========================
 SECTION 11: UI
 ========================= */
@@ -489,9 +513,21 @@ return (
   }`}
 >
 
-<h1 className="text-xl font-bold mb-3 text-center">
-Mahas Enquiry CRM
-</h1>
+<div className="flex justify-between items-center mb-3">
+  <h1 className="text-xl font-bold">
+    Mahas Enquiry CRM
+  </h1>
+
+  <button
+    onClick={() => {
+      localStorage.removeItem("loggedIn");
+      setIsLoggedIn(false);
+    }}
+    className="bg-red-500 text-white px-3 py-1 text-sm"
+  >
+    Logout
+  </button>
+</div>
 
 <div className="flex gap-2 mb-3">
 
