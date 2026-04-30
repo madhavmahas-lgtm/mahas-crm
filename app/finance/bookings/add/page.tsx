@@ -54,7 +54,7 @@ export default function AddBooking() {
       gst_on_commission: data.gst_on_commission?.toString() || "",
       tds: data.tds?.toString() || "",
       tcs: data.tcs?.toString() || "",
-      gst_amount: gst.toFixed(2),
+      gst_amount: Number(gst.toFixed(2)),
 
       net_amount: data.net_amount || 0,
       base_amount: Number((gross - gst).toFixed(2)),
@@ -88,11 +88,11 @@ useEffect(() => {
     if (name === "gross_amount") {
        if (gross > 0) {
          const gst = (gross * 5) / 105;
-         updated.gst_amount = gst.toFixed(2);
-         updated.base_amount = (gross - gst).toFixed(2);
+         updated.gst_amount = Number(gst.toFixed(2));
+         updated.base_amount = Number((gross - gst).toFixed(2));
      } else {
-       updated.gst_amount = "";
-       updated.base_amount = "";
+       updated.gst_amount = 0;
+       updated.base_amount = 0;
      }
     }
 
@@ -163,7 +163,7 @@ if (editId) {
         gst_on_commission: "",
         tds: "",
         tcs: "",
-        gst_amount: "",
+        gst_amount: 0,
         net_amount: 0,
         base_amount: 0,
       });
