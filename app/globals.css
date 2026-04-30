@@ -24,3 +24,57 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  outline: none;
+  background: white;
+  color: black;
+}
+
+.input:focus {
+  border-color: black;
+}
+
+/* Better spacing for mobile */
+.container {
+  max-width: 500px;
+  margin: auto;
+  padding: 16px;
+}
+
+/* Card style */
+.card {
+  background: white;
+  border-radius: 10px;
+  padding: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* Buttons */
+.btn {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.btn-primary {
+  background: black;
+  color: white;
+}
+
+.btn-danger {
+  color: red;
+}
+
+/* Mobile input */
+.input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px; /* important for iPhone zoom */
+}
