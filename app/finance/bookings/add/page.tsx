@@ -20,7 +20,7 @@ export default function AddBooking() {
     gst_on_commission: "",
     tds: "",
     tcs: "",
-    gst_amount: "",
+    gst_amount: 0,
 
     net_amount: 0,
     base_amount: 0,
