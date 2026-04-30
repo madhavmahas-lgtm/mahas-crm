@@ -2,14 +2,22 @@
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
+// GET ID
 export default function AddExpense() {
-  const searchParams = useSearchParams();
   const router = useRouter();
-  const editId = searchParams.get("id");
-  
+  const [editId, setEditId] = useState<string | null>(null);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get("id");
+      setEditId(id);
+    }
+  }, []);  
+
+
   const [form, setForm] = useState({
   date: new Date().toISOString().split("T")[0],
   property: "",
@@ -33,7 +41,7 @@ export default function AddExpense() {
     const { data, error } = await supabase
       .from("expenses")
       .select("*")
-      .eq("id", editId)
+      .eq("id", editId as string)
       .single();
 
     if (!error && data) {
@@ -53,6 +61,12 @@ export default function AddExpense() {
       });
     }
   };
+
+// FETCH DATA
+useEffect(() => {
+  if (!editId) return;
+  fetchExpense();
+}, [editId]);
 
 
   const handleSubmit = async () => {
@@ -129,12 +143,6 @@ export default function AddExpense() {
   };
 
       
-  useEffect(() => {
-    if (editId) {
-      fetchExpense();
-    }
-  }, [editId]);
-
   return (
     <div className="p-4 max-w-xl mx-auto space-y-3">
       <h2 className="text-xl font-bold">
