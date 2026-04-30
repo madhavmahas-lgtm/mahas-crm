@@ -57,7 +57,7 @@ export default function AddBooking() {
       gst_amount: gst.toFixed(2),
 
       net_amount: data.net_amount || 0,
-      base_amount: (gross - gst).toFixed(2),
+      base_amount: Number((gross - gst).toFixed(2)),
     });
   }
 };
