@@ -1,11 +1,7 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-export const fetchCache = "force-no-store";
-
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
@@ -29,15 +25,17 @@ export default function AddBooking() {
     base_amount: 0,
   });
 
-  const searchParams = useSearchParams();
   const router = useRouter();
 
   const [editId, setEditId] = useState<string | null>(null);
 
   useEffect(() => {
-    const id = searchParams.get("id");
+  if (typeof window !== "undefined") {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
     setEditId(id);
-  }, [searchParams]);
+  }
+}, []);
 
   const fetchBooking = async () => {
   const { data, error } = await supabase
