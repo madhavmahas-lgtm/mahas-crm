@@ -31,7 +31,13 @@ export default function AddBooking() {
 
   const searchParams = useSearchParams();
   const router = useRouter();
-  const editId = searchParams.get("id");
+
+  const [editId, setEditId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const id = searchParams.get("id");
+    setEditId(id);
+  }, [searchParams]);
 
   const fetchBooking = async () => {
   const { data, error } = await supabase
