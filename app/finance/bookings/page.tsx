@@ -11,6 +11,7 @@ export default function BookingsList() {
   const [monthFilter, setMonthFilter] = useState("");
   const [invoiceFilter, setInvoiceFilter] = useState("");
   const [nameFilter, setNameFilter] = useState("");
+  const [sourceFilter, setSourceFilter] = useState("");
 
   const router = useRouter();
 
@@ -20,28 +21,58 @@ export default function BookingsList() {
   .select("*")
   .order("checkout_date", { ascending: false });
 
-// DEFAULT = TODAY
-const today =
+// DEFAULT = CURRENT MONTH
+
+const currentMonth =
   new Date()
     .toISOString()
-    .split("T")[0];
+    .slice(0,7);
 
-// Apply today unless month,
-// invoice or name search used
+const startDate =
+  `${currentMonth}-01`;
+
+const nextMonth =
+  new Date(
+    currentMonth + "-01"
+  );
+
+nextMonth.setMonth(
+  nextMonth.getMonth() + 1
+);
+
+const endDate =
+  nextMonth
+    .toISOString()
+    .split("T")[0];
 
 if (
   !monthFilter &&
   !invoiceFilter &&
-  !nameFilter
+  !nameFilter &&
+  !sourceFilter
 ) {
-  query = query.eq(
-    "checkout_date",
-    today
-  );
+  query = query
+    .gte(
+      "checkout_date",
+      startDate
+    )
+    .lt(
+      "checkout_date",
+      endDate
+    );
 }
+
     // PROPERTY FILTER
     if (propertyFilter) {
       query = query.eq("property", propertyFilter);
+    }
+
+    // SOURCE FILTER
+    if (sourceFilter) {
+      query = query.eq(
+        "source_type",
+        sourceFilter
+      );
     }
 
     // MONTH FILTER
@@ -103,6 +134,7 @@ if (
     fetchBookings();
   }, [
     propertyFilter,
+    sourceFilter,
     monthFilter,
     invoiceFilter,
     nameFilter,
@@ -140,6 +172,7 @@ if (
     <button
     onClick={() => {
     setPropertyFilter("");
+    setSourceFilter("");
     setMonthFilter("");
     setInvoiceFilter("");
     setNameFilter("");
@@ -187,6 +220,51 @@ if (
 
       </select>
 
+      <select
+       value={sourceFilter}
+       onChange={(e)=>
+         setSourceFilter(
+           e.target.value
+         )
+       }
+       className="border p-2 rounded"
+     >
+
+     <option value="">
+     All Sources
+     </option>
+
+     <option>
+     Direct
+     </option>
+
+     <option>
+     Airbnb
+     </option>
+
+     <option>
+     Booking.com
+     </option>
+
+     <option>
+     MakeMyTrip
+     </option>
+
+     <option>
+     Goibibo
+     </option>
+
+     <option>
+     Agoda
+     </option>
+
+     <option>
+     StayFlexi
+     </option>
+
+     </select>
+
+
       <input
         type="month"
         title="Filter by Month"
@@ -223,7 +301,14 @@ if (
            className="border rounded-lg p-3 bg-white shadow-sm border-gray-200 space-y-3"
          >
          
-<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2 text-sm flex-1">
+<div className="
+grid
+grid-cols-2
+md:grid-cols-3
+lg:grid-cols-[1.2fr_1fr_1fr_1.2fr_1.8fr_1.4fr]
+gap-3
+text-sm
+">
   <div>
     <p className="text-gray-500">
       Property
@@ -256,10 +341,21 @@ if (
 
   <div>
     <p className="text-gray-500">
-      Invoice
+      Source
     </p>
 
     <p>
+      {b.source_type}
+    </p>
+
+  </div>
+
+  <div>
+    <p className="text-gray-500">
+      Invoice
+    </p>
+
+    <p className="break-words">
       {b.invoice_number}
     </p>
   </div>
@@ -269,22 +365,24 @@ if (
       Name
     </p>
 
-    <p>
+    <p className="break-words">
       {b.guest_name}
     </p>
   </div>
 
-  <div>
-    <p className="text-gray-500">
-      Amount
-    </p>
+</div>
 
-    <p className="font-bold">
-      ₹{Number(
-        b.net_amount || 0
-      ).toLocaleString("en-IN")}
-    </p>
-  </div>
+<div className="pt-2">
+
+<p className="text-gray-500 text-sm">
+Amount
+</p>
+
+<p className="font-bold text-xl text-green-700">
+₹{Number(
+  b.net_amount || 0
+).toLocaleString("en-IN")}
+</p>
 
 </div>
          
