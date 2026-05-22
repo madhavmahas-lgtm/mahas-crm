@@ -16,10 +16,29 @@ export default function BookingsList() {
 
   const fetchBookings = async () => {
     let query = supabase
-      .from("bookings")
-      .select("*")
-      .order("checkout_date", { ascending: false });
+  .from("bookings")
+  .select("*")
+  .order("checkout_date", { ascending: false });
 
+// DEFAULT = TODAY
+const today =
+  new Date()
+    .toISOString()
+    .split("T")[0];
+
+// Apply today unless month,
+// invoice or name search used
+
+if (
+  !monthFilter &&
+  !invoiceFilter &&
+  !nameFilter
+) {
+  query = query.eq(
+    "checkout_date",
+    today
+  );
+}
     // PROPERTY FILTER
     if (propertyFilter) {
       query = query.eq("property", propertyFilter);
