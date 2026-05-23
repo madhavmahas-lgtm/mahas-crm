@@ -22,6 +22,8 @@ export default function BookingsList() {
 
   });
 
+  const [sourceSummary,setSourceSummary] = useState<any>({});
+
   const [propertyFilter, setPropertyFilter] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
@@ -279,6 +281,121 @@ collected,
 
 });
 
+const sourceTotals:any = {};
+
+(data || []).forEach((b)=>{
+
+const src =
+b.source_type ||
+"Unknown";
+
+if(
+!sourceTotals[src]
+){
+
+sourceTotals[src] = {
+
+bookings:0,
+commission:0,
+gstComm:0,
+tds:0,
+tcs:0,
+net:0,
+collected:0,
+
+};
+
+}
+
+sourceTotals[src]
+.bookings +=
+Number(
+b.gross_amount || 0
+);
+
+sourceTotals[src]
+.commission +=
+Number(
+b.commission_amount || 0
+);
+
+sourceTotals[src]
+.gstComm +=
+Number(
+b.gst_on_commission || 0
+);
+
+sourceTotals[src]
+.tds +=
+Number(
+b.tds || 0
+);
+
+sourceTotals[src]
+.tcs +=
+Number(
+b.tcs || 0
+);
+
+sourceTotals[src]
+.net +=
+Number(
+b.net_amount || 0
+);
+
+});
+
+
+payments?.forEach((p)=>{
+
+const booking =
+(data || [])
+.find(
+(b)=>
+b.id ===
+p.booking_id
+);
+
+if(
+booking
+){
+
+const src =
+booking.source_type ||
+"Unknown";
+
+sourceTotals[src]
+.collected +=
+Number(
+p.payment_amount || 0
+);
+
+}
+
+});
+
+
+Object.keys(
+sourceTotals
+).forEach((s)=>{
+
+sourceTotals[s]
+.outstanding =
+
+sourceTotals[s]
+.net
+
+-
+
+sourceTotals[s]
+.collected;
+
+});
+
+
+setSourceSummary(
+sourceTotals
+);
 
       }
 
@@ -358,15 +475,44 @@ collected,
 
 <div
 className="
-grid
-grid-cols-2
-md:grid-cols-4
-gap-3
 border
 rounded-lg
 p-3
 bg-white
 shadow-sm
+space-y-3
+"
+>
+
+<p className="
+font-bold
+text-lg
+text-blue-700
+border-b
+pb-2
+mb-2
+">
+
+{
+propertyFilter
+?
+
+propertyFilter
+
+:
+
+"All Properties"
+
+}
+
+</p>
+
+<div
+className="
+grid
+grid-cols-2
+md:grid-cols-4
+gap-3
 "
 >
 
@@ -489,6 +635,218 @@ summary.outstanding
 }
 </p>
 </div>
+
+</div>
+
+</div>
+
+<div
+className="
+space-y-3
+"
+>
+
+{
+Object.entries(
+sourceSummary
+).map(
+([source,
+v]:any)=>(
+
+
+<div
+key={source}
+className="
+grid
+grid-cols-2
+md:grid-cols-4
+gap-3
+border
+rounded-lg
+p-3
+bg-white
+shadow-sm
+"
+>
+
+<div className="
+col-span-2
+md:col-span-4
+">
+
+<p className="
+font-bold
+text-lg
+text-blue-700
+border-b
+pb-2
+mb-2
+">
+{source}
+</p>
+
+</div>
+
+<div>
+
+<p className="text-gray-500 text-sm">
+Bookings
+</p>
+
+<p className="
+font-bold
+text-green-700
+">
+
+₹{
+v.bookings
+.toLocaleString(
+"en-IN"
+)
+}
+
+</p>
+
+</div>
+
+<div>
+
+<p className="text-gray-500 text-sm">
+Commission
+</p>
+
+<p>
+
+₹{
+v.commission
+.toLocaleString(
+"en-IN"
+)
+}
+
+</p>
+
+</div>
+
+<div>
+
+<p className="text-gray-500 text-sm">
+GST Comm
+</p>
+
+<p>
+
+₹{
+(v.gstComm || 0)
+.toLocaleString(
+"en-IN"
+)
+}
+
+</p>
+
+</div>
+
+<div>
+
+<p className="text-gray-500 text-sm">
+TDS
+</p>
+
+<p>
+
+₹{
+v.tds
+.toLocaleString(
+"en-IN"
+)
+}
+
+</p>
+
+</div>
+
+<div>
+
+<p className="text-gray-500 text-sm">
+TCS
+</p>
+
+<p>
+
+₹{
+v.tcs
+.toLocaleString(
+"en-IN"
+)
+}
+
+</p>
+
+</div>
+
+<div>
+
+<p className="text-gray-500 text-sm">
+Card Charges
+</p>
+
+<p>
+
+₹0
+
+</p>
+
+</div>
+
+<div>
+
+<p className="text-gray-500 text-sm">
+Collected
+</p>
+
+<p className="
+font-bold
+text-green-700
+">
+
+₹{
+(v.collected || 0)
+.toLocaleString(
+"en-IN"
+)
+}
+
+</p>
+
+</div>
+
+<div>
+
+<p className="text-gray-500 text-sm">
+Outstanding
+</p>
+
+<p className="
+font-bold
+text-red-600
+">
+
+₹{
+v.outstanding
+.toLocaleString(
+"en-IN"
+)
+}
+
+</p>
+
+</div>
+
+</div>
+
+))
+}
 
 </div>
 
@@ -646,13 +1004,13 @@ text-sm
     </p>
   </div>
 
-  <div>
+<div>
+
 <p className="text-gray-500">
 Month
 </p>
 
 <p>
-
 
 {
 b.checkout_date
