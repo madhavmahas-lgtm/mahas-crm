@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 
 export default function BookingsList() {
   const [bookings, setBookings] = useState<any[]>([]);
-
+  const [paymentTotals, setPaymentTotals] = useState<any>({});
   const [propertyFilter, setPropertyFilter] = useState("");
   const [monthFilter, setMonthFilter] = useState("");
   const [invoiceFilter, setInvoiceFilter] = useState("");
@@ -125,8 +125,53 @@ if (
     const { data, error } = await query;
 
     if (!error) {
+
       setBookings(data || []);
+
+      const ids =
+        (data || []).map(
+          (b) => b.id
+        );
+
+      if (ids.length > 0) {
+
+        const {
+          data: payments
+        } = await supabase
+          .from("payments")
+          .select(
+            "booking_id, payment_amount"
+          )
+          .in(
+            "booking_id",
+            ids
+          );
+
+        const totals:any = {};
+
+        payments?.forEach((p) => {
+
+          totals[p.booking_id] =
+          (
+            totals[
+              p.booking_id
+            ] || 0
+          )
+          +
+          Number(
+            p.payment_amount || 0
+          );
+
+         });
+
+        setPaymentTotals(
+          totals
+        );
+
+      }
+
     }
+
   };
 
 
@@ -295,7 +340,27 @@ if (
 
     </div>
 
-      {bookings.map((b) => (
+      {bookings.map((b) => {
+
+      const collected =
+      paymentTotals[
+      b.id
+      ] || 0;
+
+      const pending =
+      Number(
+      b.net_amount || 0
+      )
+      -
+      collected;
+
+      const status =
+      pending <= 0
+      ? "Paid"
+      : "Pending";
+
+      return (
+
          <div
            key={b.id}
            className="border rounded-lg p-3 bg-white shadow-sm border-gray-200 space-y-3"
@@ -372,17 +437,88 @@ text-sm
 
 </div>
 
-<div className="pt-2">
+<div
+className="
+grid
+grid-cols-2
+md:grid-cols-4
+gap-3
+pt-2
+border-t
+"
+>
+
+<div>
 
 <p className="text-gray-500 text-sm">
 Amount
 </p>
 
 <p className="font-bold text-xl text-green-700">
+
 ₹{Number(
-  b.net_amount || 0
+b.net_amount || 0
 ).toLocaleString("en-IN")}
+
 </p>
+
+</div>
+
+<div>
+
+<p className="text-gray-500 text-sm">
+Collected
+</p>
+
+<p className="font-semibold">
+
+₹{
+collected.toLocaleString(
+"en-IN"
+)
+}
+
+</p>
+
+</div>
+
+<div>
+
+<p className="text-gray-500 text-sm">
+Pending
+</p>
+
+<p className="font-semibold">
+
+₹{
+pending.toLocaleString(
+"en-IN"
+)
+}
+
+</p>
+
+</div>
+
+<div>
+
+<p className="text-gray-500 text-sm">
+Status
+</p>
+
+<p
+className={
+status === "Paid"
+? "text-green-600 font-bold"
+: "text-red-600 font-bold"
+}
+>
+
+{status}
+
+</p>
+
+</div>
 
 </div>
          
@@ -422,8 +558,9 @@ Amount
 </div>
 
   </div>
+  );
 
-      ))}
+      })}
     </div>
   );
 }
