@@ -23,6 +23,7 @@ export default function AddExpense() {
   property: "",
   category: "",
   paid_to: "",
+  payment_mode: "",
 
   net_amount: "",
   gst_amount: "",
@@ -50,6 +51,7 @@ export default function AddExpense() {
         property: data.property || "",
         category: data.category || "",
         paid_to: data.paid_to || "",
+        payment_mode: data.payment_mode ||"Bank Transfer",
 
         net_amount: data.net_amount?.toString() || "",
         gst_amount: data.gst_amount?.toString() || "",
@@ -85,6 +87,7 @@ useEffect(() => {
           property: form.property,
           category: form.category,
           paid_to: form.paid_to,
+          payment_mode: form.payment_mode,
 
           net_amount: Number(form.net_amount || 0),
           gst_amount: Number(form.gst_amount || 0),
@@ -104,6 +107,7 @@ useEffect(() => {
           property: form.property,
           category: form.category,
           paid_to: form.paid_to,
+          payment_mode: form.payment_mode,
 
           net_amount: Number(form.net_amount || 0),
           gst_amount: Number(form.gst_amount || 0),
@@ -131,6 +135,7 @@ useEffect(() => {
           property: "",
           category: "",
           paid_to: "",
+          payment_mode: "Bank Transfer",
           net_amount: "",
           gst_amount: "",
           gross_amount: "",
@@ -203,6 +208,39 @@ useEffect(() => {
         onChange={handleChange}
         className="input"
       />
+
+<select
+name="payment_mode"
+value={form.payment_mode}
+onChange={handleChange}
+className="input"
+>
+
+<option value="">
+Payment Mode
+</option>
+
+<option>
+Cash
+</option>
+
+<option>
+Bank Transfer
+</option>
+
+<option>
+UPI
+</option>
+
+<option>
+Credit Card
+</option>
+
+<option>
+Debit Card
+</option>
+
+</select>
 
       {/* AMOUNTS */}
       <input
