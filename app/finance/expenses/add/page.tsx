@@ -186,6 +186,9 @@ useEffect(() => {
         <option>Maintenance</option>
         <option>OTA Charges</option>
         <option>Payment Charges</option>
+        <option>Card/UPI Charges</option>
+        <option>Staff Expenses</option>
+        <option>Business Travel</option>
         <option>GST Payment</option>
         <option>TDS Payment</option>
         <option>Misc</option>
