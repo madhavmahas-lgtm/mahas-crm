@@ -7,6 +7,21 @@ import { useRouter } from "next/navigation";
 export default function BookingsList() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [paymentTotals, setPaymentTotals] = useState<any>({});
+
+  const [summary, setSummary] =
+  useState({
+
+  grossAmount:0,
+  commission:0,
+  gstCommission:0,
+  tds:0,
+  tcs:0,
+  cardCharges:0,
+  collected:0,
+  outstanding:0,
+
+  });
+
   const [propertyFilter, setPropertyFilter] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
@@ -121,11 +136,34 @@ toDate
       setBookings(data || []);
 
       const ids =
-        (data || []).map(
-          (b) => b.id
-        );
+      (data || []).map(
+      (b)=>b.id
+      );
 
-      if (ids.length > 0) {
+      if (
+      ids.length === 0
+      ) {
+
+setPaymentTotals({});
+
+setSummary({
+
+grossAmount:0,
+commission:0,
+gstCommission:0,
+tds:0,
+tcs:0,
+cardCharges:0,
+collected:0,
+outstanding:0,
+
+});
+
+return;
+
+}
+
+        {
 
         const {
           data: payments
@@ -159,6 +197,88 @@ toDate
         setPaymentTotals(
           totals
         );
+
+let grossAmount = 0;
+let netAmount = 0;
+let commission = 0;
+let gstCommission = 0;
+let tds = 0;
+let tcs = 0;
+
+(data || []).forEach((b)=>{
+
+grossAmount +=
+Number(
+b.gross_amount || 0
+);
+
+netAmount +=
+Number(
+b.net_amount || 0
+);
+
+commission +=
+Number(
+b.commission_amount || 0
+);
+
+gstCommission +=
+Number(
+b.gst_on_commission || 0
+);
+
+tds +=
+Number(
+b.tds || 0
+);
+
+tcs +=
+Number(
+b.tcs || 0
+);
+
+});
+
+let collected = 0;
+let cardCharges = 0;
+
+payments?.forEach((p)=>{
+
+collected +=
+Number(
+p.payment_amount || 0
+);
+
+cardCharges +=
+Number(
+p.card_charges || 0
+);
+
+});
+
+setSummary({
+
+grossAmount,
+
+commission,
+
+gstCommission,
+
+tds,
+
+tcs,
+
+cardCharges,
+
+collected,
+
+outstanding:
+netAmount
+-
+collected,
+
+});
+
 
       }
 
@@ -235,6 +355,142 @@ toDate
     </div>
 
     </div>
+
+<div
+className="
+grid
+grid-cols-2
+md:grid-cols-4
+gap-3
+border
+rounded-lg
+p-3
+bg-white
+shadow-sm
+"
+>
+
+<div>
+<p className="text-gray-500 text-sm">
+Bookings
+</p>
+
+<p className="font-bold text-green-700">
+₹{
+summary.grossAmount
+.toLocaleString(
+"en-IN"
+)
+}
+</p>
+</div>
+
+<div>
+<p className="text-gray-500 text-sm">
+Commission
+</p>
+
+<p>
+₹{
+summary.commission
+.toLocaleString(
+"en-IN"
+)
+}
+</p>
+</div>
+
+<div>
+<p className="text-gray-500 text-sm">
+GST Comm
+</p>
+
+<p>
+₹{
+summary.gstCommission
+.toLocaleString(
+"en-IN"
+)
+}
+</p>
+</div>
+
+<div>
+<p className="text-gray-500 text-sm">
+TDS
+</p>
+
+<p>
+₹{
+summary.tds
+.toLocaleString(
+"en-IN"
+)
+}
+</p>
+</div>
+
+<div>
+<p className="text-gray-500 text-sm">
+TCS
+</p>
+
+<p>
+₹{
+summary.tcs
+.toLocaleString(
+"en-IN"
+)
+}
+</p>
+</div>
+
+<div>
+<p className="text-gray-500 text-sm">
+Card Charges
+</p>
+
+<p>
+₹{
+summary.cardCharges
+.toLocaleString(
+"en-IN"
+)
+}
+</p>
+</div>
+
+<div>
+<p className="text-gray-500 text-sm">
+Collected
+</p>
+
+<p className="font-bold text-green-700">
+₹{
+summary.collected
+.toLocaleString(
+"en-IN"
+)
+}
+</p>
+</div>
+
+<div>
+<p className="text-gray-500 text-sm">
+Outstanding
+</p>
+
+<p className="font-bold text-red-600">
+₹{
+summary.outstanding
+.toLocaleString(
+"en-IN"
+)
+}
+</p>
+</div>
+
+</div>
 
     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
 
@@ -391,14 +647,35 @@ text-sm
   </div>
 
   <div>
-    <p className="text-gray-500">
-      Month
-    </p>
+<p className="text-gray-500">
+Month
+</p>
 
-    <p>
-      {b.checkout_date?.slice(0,7)}
-    </p>
-  </div>
+<p>
+
+
+{
+b.checkout_date
+?
+
+new Date(
+b.checkout_date
+)
+.toLocaleDateString(
+"en-IN",
+{
+month:"short",
+year:"numeric"
+}
+)
+
+: ""
+
+}
+
+</p>
+
+</div>
 
   <div>
     <p className="text-gray-500">
