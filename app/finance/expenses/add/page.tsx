@@ -191,6 +191,7 @@ useEffect(() => {
         <option>Business Travel</option>
         <option>GST Payment</option>
         <option>TDS Payment</option>
+        <option>Loan Repay</option>
         <option>Misc</option>
       </select>
 
