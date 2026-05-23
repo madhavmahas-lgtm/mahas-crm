@@ -8,7 +8,8 @@ export default function BookingsList() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [paymentTotals, setPaymentTotals] = useState<any>({});
   const [propertyFilter, setPropertyFilter] = useState("");
-  const [monthFilter, setMonthFilter] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
   const [invoiceFilter, setInvoiceFilter] = useState("");
   const [nameFilter, setNameFilter] = useState("");
   const [sourceFilter, setSourceFilter] = useState("");
@@ -46,7 +47,8 @@ const endDate =
     .split("T")[0];
 
 if (
-  !monthFilter &&
+  !fromDate &&
+  !toDate &&
   !invoiceFilter &&
   !nameFilter &&
   !sourceFilter
@@ -61,7 +63,6 @@ if (
       endDate
     );
 }
-
     // PROPERTY FILTER
     if (propertyFilter) {
       query = query.eq("property", propertyFilter);
@@ -75,35 +76,26 @@ if (
       );
     }
 
-    // MONTH FILTER
-   if (monthFilter) {
+// DATE RANGE FILTER
 
-  const startDate =
-    `${monthFilter}-01`;
+if (fromDate) {
 
-  const nextMonth =
-    new Date(
-      monthFilter + "-01"
-    );
+query =
+query.gte(
+"checkout_date",
+fromDate
+);
 
-  nextMonth.setMonth(
-    nextMonth.getMonth() + 1
-  );
+}
 
-  const endDate =
-    nextMonth
-      .toISOString()
-      .split("T")[0];
+if (toDate) {
 
-  query = query
-    .gte(
-      "checkout_date",
-      startDate
-    )
-    .lt(
-      "checkout_date",
-      endDate
-    );
+query =
+query.lte(
+"checkout_date",
+toDate
+);
+
 }
 
     // INVOICE FILTER
@@ -180,7 +172,8 @@ if (
   }, [
     propertyFilter,
     sourceFilter,
-    monthFilter,
+    fromDate,
+    toDate,
     invoiceFilter,
     nameFilter,
   ]);
@@ -218,7 +211,8 @@ if (
     onClick={() => {
     setPropertyFilter("");
     setSourceFilter("");
-    setMonthFilter("");
+    setFromDate("");
+    setToDate("");
     setInvoiceFilter("");
     setNameFilter("");
     }}
@@ -311,14 +305,26 @@ if (
 
 
       <input
-        type="month"
-        title="Filter by Month"
-        value={monthFilter}
-        onChange={(e)=>
-          setMonthFilter(e.target.value)
-        }
-        className="border p-2 rounded"
-       />
+      type="date"
+      value={fromDate}
+      onChange={(e)=>
+      setFromDate(
+      e.target.value
+      )
+      }
+      className="border p-2 rounded"
+      />
+
+      <input
+      type="date"
+      value={toDate}
+      onChange={(e)=>
+      setToDate(
+      e.target.value
+      )
+      }
+      className="border p-2 rounded"
+      />
 
       <input
         placeholder="Invoice Number"
@@ -400,8 +406,30 @@ text-sm
     </p>
 
     <p>
-      {b.checkout_date}
+
+    {
+    b.checkout_date
+    ?
+
+    new Date(
+    b.checkout_date
+    )
+
+    .toLocaleDateString(
+    "en-GB"
+    )
+
+    .replaceAll(
+    "/",
+    "-"
+    )
+
+    : ""
+
+    }
+
     </p>
+
   </div>
 
   <div>
