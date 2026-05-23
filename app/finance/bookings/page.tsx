@@ -172,7 +172,11 @@ return;
         } = await supabase
           .from("payments")
           .select(
-            "booking_id, payment_amount"
+          `
+          booking_id,
+          payment_amount,
+          card_charges
+          `
           )
           .in(
             "booking_id",
