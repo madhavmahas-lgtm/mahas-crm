@@ -744,17 +744,29 @@ text-right
 
 ₹{
 fmt(
+
 Object.values(
 data.categorySummary || {}
 )
+
 .reduce(
-(a:any,b:any)=>
-a + b,
-0
+(
+a:number,
+b:any
+)=>
+
+a +
+
+Number(
+b || 0
 )
+
+,0
+
+)
+
 )
 }
-
 </td>
 
 </tr>
