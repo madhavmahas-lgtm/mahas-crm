@@ -14,33 +14,78 @@ export default function Dashboard() {
 
     vrindavanSales: 0,
     vrindavanExpenses: 0,
+
+    commonExpenses:0,
+
+    eliteCommonShare:0,
+
+    vrindavanCommonShare:0,
+    paymentSummary:{
+    bank:0,
+    cash:0,
+    upi:0,
+    card:0
+    },
+
   });
 
-  const [filters, setFilters] = useState({
-    from: "",
-    to: "",
-  });
+  const currentMonth =
+new Date()
+.toISOString()
+.slice(0,7);
+
+const nextMonth =
+new Date(
+currentMonth + "-01"
+);
+
+nextMonth.setMonth(
+nextMonth.getMonth()+1
+);
+
+const [filters,setFilters] =
+useState({
+
+from:
+`${currentMonth}-01`,
+
+to:
+nextMonth
+.toISOString()
+.split("T")[0]
+
+});
 
 
 const fetchData = async () => {
   // BOOKINGS QUERY
   let bookingQuery = supabase
     .from("bookings")
-    .select("property, net_amount, booking_date");
+    .select(
+    "property, gross_amount, checkout_date"
+    )
 
   if (filters.from) {
-    bookingQuery = bookingQuery.gte("booking_date", filters.from);
+    bookingQuery = bookingQuery.gte("checkout_date",filters.from);
   }
   if (filters.to) {
-    bookingQuery = bookingQuery.lte("booking_date", filters.to);
+    bookingQuery = bookingQuery.lte("checkout_date",filters.to);
   }
 
   const { data: bookings } = await bookingQuery;
 
   // EXPENSES QUERY
   let expenseQuery = supabase
-    .from("expenses")
-    .select("property, net_amount, date");
+  .from("expenses")
+  .select(
+  `
+  property,
+  gross_amount,
+  net_amount,
+  date,
+  payment_mode
+  `
+  );
 
   if (filters.from) {
     expenseQuery = expenseQuery.gte("date", filters.from);
@@ -60,9 +105,23 @@ const fetchData = async () => {
   let eliteExpenses = 0;
   let vrindavanExpenses = 0;
 
+  let commonExpenses = 0;
+
+  let eliteCommonShare = 0;
+  let vrindavanCommonShare = 0;
+
+  let paymentSummary = {
+
+  bank:0,
+  cash:0,
+  upi:0,
+  card:0
+
+  };
+
   // SALES
   bookings?.forEach((b) => {
-    const amt = Number(b.net_amount || 0);
+    const amt = Number(b.gross_amount || 0);
     totalSales += amt;
 
     if (b.property === "Mahas Elite") eliteSales += amt;
@@ -71,18 +130,83 @@ const fetchData = async () => {
 
   // EXPENSES
   expenses?.forEach((e) => {
-    const amt = Number(e.net_amount || 0);
+  const amt = Number(e.gross_amount || e.net_amount || 0 );  
+
+const mode =
+(
+e.payment_mode
+||
+""
+)
+.toLowerCase();
+
+if(
+mode.includes(
+"bank"
+)
+){
+
+paymentSummary.bank += amt;
+
+}
+
+else if(
+mode.includes(
+"cash"
+)
+){
+
+paymentSummary.cash += amt;
+
+}
+
+else if(
+mode.includes(
+"upi"
+)
+){
+
+paymentSummary.upi += amt;
+
+}
+
+else if(
+mode.includes(
+"card"
+)
+){
+
+paymentSummary.card += amt;
+
+}
+
     totalExpenses += amt;
 
     if (e.property === "Mahas Elite") {
       eliteExpenses += amt;
     } else if (e.property === "Mahas Vrindavan") {
       vrindavanExpenses += amt;
-    } else if (e.property === "Common") {
-      // 1/3 Elite, 2/3 Vrindavan
-      eliteExpenses += amt / 3;
-      vrindavanExpenses += (amt * 2) / 3;
-    }
+    } 
+      else if (
+e.property ===
+"Common"
+){
+
+commonExpenses += amt;
+
+eliteCommonShare +=
+amt / 3;
+
+vrindavanCommonShare +=
+(amt * 2) / 3;
+
+eliteExpenses +=
+amt / 3;
+
+vrindavanExpenses +=
+(amt * 2) / 3;
+
+}
   });
 
   setData({
@@ -95,12 +219,35 @@ const fetchData = async () => {
 
     vrindavanSales,
     vrindavanExpenses,
+
+    commonExpenses,
+
+    eliteCommonShare,
+
+    vrindavanCommonShare,
+
+    paymentSummary,
   });
 };
 
     useEffect(() => {
       fetchData();
     }, [filters]);
+
+const fmt =
+(v:number)=>
+
+Number(
+v || 0
+)
+
+.toLocaleString(
+"en-IN",
+{
+minimumFractionDigits:2,
+maximumFractionDigits:2
+}
+);
 
   return (
     <div className="container space-y-4">
@@ -128,69 +275,378 @@ const fetchData = async () => {
     
   </div>
 
-      {/* OVERALL */}
-      
-      <div className="border rounded-lg p-3 bg-white shadow-sm">
-        <p>
-          Total Sales: ₹{data.totalSales.toLocaleString("en-IN")}
-        </p>
+<table className="
+w-full
+border
+text-sm
+">
 
-        <p>
-          Total Expenses: ₹{data.totalExpenses.toLocaleString("en-IN")}
-        </p>
+<thead>
 
-        <p className={`font-bold ${
-          data.profit >= 0 ? "text-green-600" : "text-red-600"
-        }`}>
-          Profit: ₹{data.profit.toLocaleString("en-IN")}
-        </p>
-      </div>
-      
-      {/* ELITE */}
-      <div className="border rounded-lg p-3 bg-white shadow-sm">
-        
-      <p className="font-bold">Mahas Elite</p>
+<tr className="
+border-b
+bg-gray-100
+font-bold
+">
 
-      <p>
-        Sales: ₹{data.eliteSales.toLocaleString("en-IN")}
-      </p>
+<th className="p-2">
+Property
+</th>
 
-      <p>
-        Expenses: ₹{data.eliteExpenses.toLocaleString("en-IN")}
-      </p>
+<th className="
+p-2
+text-right
+">
+Revenue
+</th>
 
-      <p className={`${
-        data.eliteSales - data.eliteExpenses >= 0
-        ? "text-green-600"
-        : "text-red-600"
-      }`}>
-        Profit: ₹{(data.eliteSales - data.eliteExpenses).toLocaleString("en-IN")}
-      </p>
-        
-      </div>
+<th className="
+p-2
+text-right
+">
+Expenses
+</th>
 
-      {/* VRINDAVAN */}
-      <div className="border rounded-lg p-3 bg-white shadow-sm">
+<th className="
+p-2
+text-right
+">
+Common Share
+</th>
 
-        <p className="font-bold">Mahas Vrindavan</p>
+<th className="
+p-2
+text-right
+">
+Profit
+</th>
+</tr>
 
-        <p>
-          Sales: ₹{data.vrindavanSales.toLocaleString("en-IN")}
-        </p>
+</thead>
 
-        <p>
-          Expenses: ₹{data.vrindavanExpenses.toLocaleString("en-IN")}
-        </p>
+<tbody>
 
-        <p className={`${
-          data.vrindavanSales - data.vrindavanExpenses >= 0
-            ? "text-green-600"
-            : "text-red-600"
-        }`}>
-          Profit: ₹{(data.vrindavanSales - data.vrindavanExpenses).toLocaleString("en-IN")}
-         </p>
+<tr className="border-b">
 
-      </div>
-    </div>
-  );
+<td className="p-2">
+All Properties
+</td>
+
+<td className="
+p-2
+text-right
+">
+₹{
+fmt(
+data.totalSales
+)
+}
+</td>
+
+<td className="
+p-2
+text-right
+">
+
+₹{
+fmt(
+data.totalExpenses
+)
+}
+
+</td>
+
+<td className="
+p-2
+text-right
+">
+
+₹{
+fmt(
+data.commonExpenses
+)
+}
+
+</td>
+<td className="
+p-2
+text-right
+font-bold
+">
+
+₹{
+fmt(
+data.profit
+)
+}
+
+</td>
+
+</tr>
+
+<tr className="border-b">
+
+<td className="p-2">
+Mahas Elite
+</td>
+
+<td className="
+p-2
+text-right
+">
+₹{
+fmt(
+data.eliteSales
+)
+}
+
+</td>
+
+<td className="
+p-2
+text-right
+">
+
+₹{
+fmt(
+data.eliteExpenses
+)
+}
+
+</td>
+
+<td className="
+p-2
+text-right
+">
+
+₹{
+fmt(
+data.eliteCommonShare
+)
+}
+
+</td>
+<td className="
+p-2
+text-right
+">
+
+₹{
+fmt(
+data.eliteSales
+-
+data.eliteExpenses
+)
+}
+
+</td>
+
+</tr>
+
+<tr>
+
+<td className="p-2">
+Mahas Vrindavan
+</td>
+
+<td className="
+p-2
+text-right
+">
+₹{
+fmt(
+data.vrindavanSales
+)
+}
+
+</td>
+
+<td className="
+p-2
+text-right
+">
+
+₹{
+fmt(
+data.vrindavanExpenses
+)
+}
+
+</td>
+
+<td className="
+p-2
+text-right
+">
+
+₹{
+fmt(
+data.vrindavanCommonShare
+)
+}
+
+</td>
+<td className="
+p-2
+text-right
+">
+
+₹{
+fmt(
+data.vrindavanSales
+-
+data.vrindavanExpenses
+)
+}
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+<div className="
+border
+rounded
+mt-6
+p-4
+">
+
+<h3 className="
+font-bold
+mb-3
+">
+Payment Mode Analysis
+</h3>
+
+<table className="
+w-full
+text-sm
+">
+
+<tbody>
+
+<tr>
+
+<td>
+Bank Transfer
+</td>
+
+<td className="
+text-right
+">
+₹{
+fmt(
+data.paymentSummary
+?.bank
+)
+}
+</td>
+
+</tr>
+
+<tr>
+
+<td>
+Cash
+</td>
+
+<td className="
+text-right
+">
+₹{
+fmt(
+data.paymentSummary
+?.cash
+)
+}
+</td>
+
+</tr>
+
+<tr>
+
+<td>
+UPI
+</td>
+
+<td className="
+text-right
+">
+₹{
+fmt(
+data.paymentSummary
+?.upi
+)
+}
+</td>
+
+</tr>
+
+<tr>
+
+<td>
+Card
+</td>
+
+<td className="
+text-right
+">
+₹{
+fmt(
+data.paymentSummary
+?.card
+)
+}
+</td>
+
+</tr>
+
+<tr className="
+font-bold
+border-t
+">
+
+<td>
+TOTAL
+</td>
+
+<td className="
+text-right
+">
+
+₹{
+fmt(
+(
+data.paymentSummary?.bank ||0
+)
++
+(
+data.paymentSummary?.cash ||0
+)
++
+(
+data.paymentSummary?.upi ||0
+)
++
+(
+data.paymentSummary?.card ||0
+)
+)
+}
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>  );
 }
