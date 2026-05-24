@@ -26,6 +26,8 @@ export default function Dashboard() {
     upi:0,
     card:0
     },
+    
+    categorySummary:{},
 
   });
 
@@ -76,16 +78,17 @@ const fetchData = async () => {
 
   // EXPENSES QUERY
   let expenseQuery = supabase
-  .from("expenses")
-  .select(
-  `
-  property,
-  gross_amount,
-  net_amount,
-  date,
-  payment_mode
-  `
-  );
+.from("expenses")
+.select(
+`
+property,
+gross_amount,
+net_amount,
+date,
+payment_mode,
+category
+`
+);
 
   if (filters.from) {
     expenseQuery = expenseQuery.gte("date", filters.from);
@@ -118,6 +121,8 @@ const fetchData = async () => {
   card:0
 
   };
+  
+  let categorySummary:any = {};
 
   // SALES
   bookings?.forEach((b) => {
@@ -131,6 +136,27 @@ const fetchData = async () => {
   // EXPENSES
   expenses?.forEach((e) => {
   const amt = Number(e.gross_amount || e.net_amount || 0 );  
+
+const cat =
+e.category
+||
+"Misc";
+
+if(
+!categorySummary[
+cat
+]
+){
+
+categorySummary[
+cat
+] = 0;
+
+}
+
+categorySummary[
+cat
+] += amt;
 
 const mode =
 (
@@ -227,6 +253,8 @@ vrindavanExpenses +=
     vrindavanCommonShare,
 
     paymentSummary,
+
+    categorySummary,
   });
 };
 
@@ -634,6 +662,95 @@ data.paymentSummary?.upi ||0
 +
 (
 data.paymentSummary?.card ||0
+)
+)
+}
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+<div className="
+border
+rounded
+mt-6
+p-4
+">
+
+<h3 className="
+font-bold
+mb-3
+">
+Expense Category Analysis
+</h3>
+
+<table className="
+w-full
+text-sm
+">
+
+<tbody>
+
+{
+Object.entries(
+data.categorySummary || {}
+)
+.map(
+([cat,val]:any)=>(
+
+<tr
+key={cat}
+>
+
+<td>
+{cat}
+</td>
+
+<td className="
+text-right
+">
+
+₹{
+fmt(
+val
+)
+}
+
+</td>
+
+</tr>
+
+))
+}
+
+<tr className="
+font-bold
+border-t
+">
+
+<td>
+TOTAL
+</td>
+
+<td className="
+text-right
+">
+
+₹{
+fmt(
+Object.values(
+data.categorySummary || {}
+)
+.reduce(
+(a:any,b:any)=>
+a + b,
+0
 )
 )
 }
