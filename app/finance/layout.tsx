@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 
 export default function FinanceLayout({
   children,
@@ -8,34 +9,119 @@ export default function FinanceLayout({
   children: React.ReactNode;
 }) {
   const [authenticated, setAuthenticated] = useState(false);
+
+  const [role, setRole] = useState("");
+  const [userProperty, setUserProperty] = useState("");
+
   const [loading, setLoading] = useState(true);
   const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
 
   useEffect(() => {
     const isAuth = sessionStorage.getItem("finance_auth");
 
-    if (isAuth === "true") {
-      setAuthenticated(true);
+    if(
+    isAuth === "true"
+    ){
+
+    setAuthenticated(
+    true
+    );
+
+    setRole(
+    sessionStorage.getItem(
+    "finance_role"
+    )
+    ||""
+    );
+
+    setUserProperty(
+    sessionStorage.getItem(
+    "finance_property"
+    )
+    ||""
+    );
+
     }
 
     setLoading(false);
   }, []);
 
-  const handleLogin = () => {
-    const correctPassword =
-      process.env.NEXT_PUBLIC_FINANCE_PASSWORD;
+  const handleLogin =
+async()=>{
 
-    if (password === correctPassword) {
-      sessionStorage.setItem(
-        "finance_auth",
-        "true"
-      );
+const {
+data,
+error
+}
+=
+await supabase
 
-      setAuthenticated(true);
-    } else {
-      alert("Wrong password");
-    }
-  };
+.from(
+"finance_users"
+)
+
+.select("*")
+
+.eq(
+"username",
+username
+)
+
+.eq(
+"password",
+password
+)
+
+.single();
+
+if(
+error
+||
+!data
+){
+
+alert(
+"Wrong credentials"
+);
+
+return;
+
+}
+
+sessionStorage.setItem(
+"finance_auth",
+"true"
+);
+
+sessionStorage.setItem(
+"finance_user",
+data.username
+);
+
+sessionStorage.setItem(
+"finance_role",
+data.role
+);
+
+sessionStorage.setItem(
+"finance_property",
+data.property || ""
+);
+
+setAuthenticated(
+true
+);
+
+setRole(
+data.role
+);
+
+setUserProperty(
+data.property || ""
+);
+
+};
 
   if (loading) {
     return null;
@@ -49,6 +135,31 @@ export default function FinanceLayout({
           <h2 className="text-xl font-bold text-center">
             Finance Access
           </h2>
+
+          <input
+
+          type="text"
+
+          placeholder="Username"
+
+          value={username}
+
+          onChange={(e)=>
+
+          setUsername(
+          e.target.value
+          )
+
+          }
+
+          className="
+          border
+          w-full
+          p-2
+          rounded
+          "
+
+          />
 
           <input
             type="password"
@@ -97,14 +208,25 @@ overflow-x-auto
 💰 Expenses
 </a>
 
+{
+role === "admin"
+&&
+
 <a href="/finance/dashboard">
 📊 Dashboard
 </a>
+
+}
+
+{
+role === "admin"
+&&
 
 <a href="/finance/mis">
 👑 MIS
 </a>
 
+}
 </div>
 
         <button
