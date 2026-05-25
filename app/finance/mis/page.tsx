@@ -1,9 +1,15 @@
 "use client";
 
 import {
+useEffect,
 useState
 }
 from "react";
+
+import {
+supabase
+}
+from "@/lib/supabase";
 
 export default function MISDashboard(){
 
@@ -35,6 +41,362 @@ setToDate
 nextMonth
 .toISOString()
 .split("T")[0]
+);
+
+const [
+data,
+setData
+] = useState({
+
+revenue:0,
+
+profit:0,
+
+expenses:0,
+
+paymentSummary:{
+
+bank:0,
+
+cash:0,
+
+upi:0,
+
+card:0
+
+},
+
+categorySummary:{},
+
+sourceSummary:{}
+
+});
+
+const loadMIS =
+async()=>{
+
+const {
+data: bookings
+}
+=
+await supabase
+.from(
+"bookings"
+)
+.select(
+`
+id,
+gross_amount,
+checkout_date,
+source_type,
+commission_amount
+`
+)
+.gte(
+"checkout_date",
+fromDate
+)
+.lte(
+"checkout_date",
+toDate
+);
+
+const {
+data: expenses
+}
+=
+await supabase
+.from(
+"expenses"
+)
+.select(
+`
+gross_amount,
+net_amount,
+date,
+payment_mode,
+category
+`
+)
+.gte(
+"date",
+fromDate
+)
+.lte(
+"date",
+toDate
+);
+
+let revenue = 0;
+
+let expense = 0;
+
+let paymentSummary = {
+
+bank:0,
+
+cash:0,
+
+upi:0,
+
+card:0
+
+
+};
+
+let categorySummary:any = {};
+let sourceSummary:any = {};
+
+(bookings || [])
+.forEach(
+(b:any)=>{
+
+const gross =
+Number(
+b.gross_amount
+||0
+);
+
+revenue += gross;
+
+const src =
+b.source_type
+||
+"Direct";
+
+if(
+!sourceSummary[
+src
+]
+){
+
+sourceSummary[
+src
+] = {
+
+gross:0,
+
+commission:0,
+
+collected:0,
+
+outstanding:0
+
+};
+
+}
+
+sourceSummary[
+src
+].gross += gross;
+
+sourceSummary[
+src
+].commission +=
+Number(
+b.commission_amount
+||0
+);
+
+sourceSummary[
+src
+].outstanding +=
+gross;
+
+}
+);
+
+(expenses || [])
+.forEach(
+(e:any)=>{
+
+const amt =
+Number(
+e.gross_amount
+||
+e.net_amount
+||
+0
+);
+
+expense += amt;
+
+const cat =
+e.category
+||
+"Misc";
+
+if(
+!categorySummary[
+cat
+]
+){
+
+categorySummary[
+cat
+] = 0;
+
+}
+
+categorySummary[
+cat
+] += amt;
+
+const mode =
+(
+e.payment_mode
+||
+""
+)
+.toLowerCase();
+
+if(
+mode.includes(
+"bank"
+)
+){
+
+paymentSummary.bank += amt;
+
+}
+
+else if(
+mode.includes(
+"cash"
+)
+){
+
+paymentSummary.cash += amt;
+
+}
+
+else if(
+mode.includes(
+"upi"
+)
+){
+
+paymentSummary.upi += amt;
+
+}
+
+else if(
+mode.includes(
+"card"
+)
+){
+
+paymentSummary.card += amt;
+
+}
+
+}
+);
+
+const {
+data: payments
+}
+=
+await supabase
+.from(
+"payments"
+)
+.select(
+`
+booking_id,
+payment_amount
+`
+);
+
+(bookings || [])
+.forEach(
+(b:any)=>{
+
+const src =
+b.source_type
+||
+"Direct";
+
+const bookingPayments =
+(payments || [])
+.filter(
+(p:any)=>
+p.booking_id
+=== b.id
+);
+
+const collected =
+bookingPayments
+.reduce(
+(
+a:number,
+p:any
+)=>
+
+a +
+
+Number(
+p.payment_amount
+||0
+)
+
+,0
+);
+
+sourceSummary[
+src
+].collected +=
+collected;
+
+sourceSummary[
+src
+].outstanding -=
+collected;
+
+}
+);
+
+setData({
+
+revenue,
+
+expenses:
+expense,
+
+profit:
+revenue
+-
+expense,
+
+paymentSummary,
+
+categorySummary,
+
+sourceSummary
+
+});
+};
+
+useEffect(()=>{
+loadMIS();
+},[
+fromDate,
+toDate
+]);
+
+const fmt =
+(v:any)=>
+
+Number(
+v || 0
+)
+
+.toLocaleString(
+"en-IN",
+{
+minimumFractionDigits:2,
+maximumFractionDigits:2
+}
 );
 
 return(
@@ -108,7 +470,13 @@ Revenue
 </h3>
 
 <p>
-₹0.00
+
+₹{
+fmt(
+data.revenue
+)
+}
+
 </p>
 
 </div>
@@ -127,7 +495,13 @@ Profit
 </h3>
 
 <p>
-₹0.00
+
+₹{
+fmt(
+data.profit
+)
+}
+
 </p>
 
 </div>
@@ -145,10 +519,56 @@ font-bold
 Payment Mode
 </h3>
 
+<div className="
+space-y-1
+text-sm
+">
+
 <p>
-Bank / Cash / UPI
+Bank :
+₹{
+fmt(
+data.paymentSummary?.bank
+||
+0
+)
+}
 </p>
 
+<p>
+Cash :
+₹{
+fmt(
+data.paymentSummary?.cash
+||
+0
+)
+}
+</p>
+
+<p>
+UPI :
+₹{
+fmt(
+data.paymentSummary?.upi
+||
+0
+)
+}
+</p>
+
+<p>
+Card :
+₹{
+fmt(
+data.paymentSummary?.card
+||
+0
+)
+}
+</p>
+
+</div>
 </div>
 
 <div className="
@@ -164,9 +584,38 @@ font-bold
 Expense Categories
 </h3>
 
-<p>
-Rent / Salary / Misc
+<div className="
+space-y-1
+text-sm
+">
+
+{
+Object.entries(
+data.categorySummary || {}
+)
+.map(
+([cat,val]:any)=>(
+
+<p
+key={cat}
+>
+
+{cat}
+
+:
+
+₹{
+fmt(
+val
+)
+}
+
 </p>
+
+))
+}
+
+</div>
 
 </div>
 
@@ -184,9 +633,82 @@ font-bold
 Source Performance
 </h3>
 
-<p>
-Direct / MMT / Agoda
+<div className="
+space-y-2
+text-sm
+">
+
+{
+Object.entries(
+data.sourceSummary || {}
+)
+.map(
+([src,v]:any)=>(
+
+<div
+key={src}
+className="
+border-b
+pb-2
+"
+>
+
+<p className="
+font-bold
+">
+
+{src}
+
 </p>
+
+<p>
+Revenue :
+
+₹{
+fmt(
+v.gross
+)
+}
+</p>
+
+<p>
+Commission :
+
+₹{
+fmt(
+v.commission
+)
+}
+</p>
+
+<p>
+
+Collected :
+
+₹{
+fmt(
+v.collected
+)
+}
+
+</p>
+
+<p>
+Outstanding :
+
+₹{
+fmt(
+v.outstanding
+)
+}
+</p>
+
+</div>
+
+))
+}
+
+</div>
 
 </div>
 
