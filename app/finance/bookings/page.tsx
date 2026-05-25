@@ -32,6 +32,7 @@ export default function BookingsList() {
   const [sourceFilter, setSourceFilter] = useState("");
 
   const router = useRouter();
+  const [role, setRole] = useState("");
 
   const fetchBookings = async () => {
     let query = supabase
@@ -407,6 +408,18 @@ sourceTotals
 
   };
 
+useEffect(()=>{
+
+setRole(
+sessionStorage.getItem(
+"finance_role"
+)
+||""
+
+);
+
+},[]);
+
 
   useEffect(() => {
     fetchBookings();
@@ -462,16 +475,31 @@ sourceTotals
     Clear
     </button>
 
+    {
+    role !== "viewer"
+
+    &&
+
     <button
     onClick={() =>
     router.push(
     "/finance/bookings/add"
     )
     }
-    className="bg-black text-white px-3 py-1 rounded"
+    className="
+    bg-black
+    text-white
+    px-3
+    py-1
+    rounded
+    "
     >
+
     + Add
+
     </button>
+
+    }
 
     </div>
 
@@ -1202,26 +1230,62 @@ status === "Paid"
   Payments
 </button>
 
-<button
-  onClick={() =>
-    router.push(
-      `/finance/bookings/add?id=${b.id}`
-    )
-  }
-  className="px-3 py-1 rounded text-xs bg-blue-50 text-blue-600"
->
-  Edit
-</button>
+{
+role !== "viewer"
 
-<button
-  onClick={() =>
-    handleDelete(b.id)
-  }
-  className="px-3 py-1 rounded text-xs bg-red-50 text-red-600"
->
-  Delete
-</button>
+&&
 
+(
+<button
+onClick={() =>
+router.push(
+`/finance/bookings/add?id=${b.id}`
+)
+}
+className="
+px-3
+py-1
+rounded
+text-xs
+bg-blue-50
+text-blue-600
+"
+>
+
+Edit
+
+</button>
+)
+
+}
+{
+role !== "viewer"
+
+&&
+
+(
+<button
+onClick={() =>
+handleDelete(
+b.id
+)
+}
+className="
+px-3
+py-1
+rounded
+text-xs
+bg-red-50
+text-red-600
+"
+>
+
+Delete
+
+</button>
+)
+
+}
 </div>
 
   </div>

@@ -46,6 +46,7 @@ setPaymentModeFilter
 ] = useState("");
 
   const router = useRouter();
+  const [role, setRole] = useState("");
 
   const fetchExpenses =
 async()=>{
@@ -127,6 +128,18 @@ data || []
 }
 
 };
+
+useEffect(()=>{
+
+setRole(
+sessionStorage.getItem(
+"finance_role"
+)
+||""
+
+);
+
+},[]);
 
 useEffect(()=>{
 fetchExpenses();
@@ -274,12 +287,32 @@ Debit Card
 
 </div>
 
-        <button
-          onClick={() => router.push("/finance/expenses/add")}
-          className="bg-black text-white px-3 py-1 rounded text-sm"
-      >
-        + Add
-      </button>
+        {
+role !== "viewer"
+
+&&
+
+<button
+onClick={() =>
+router.push(
+"/finance/expenses/add"
+)
+}
+className="
+bg-black
+text-white
+px-3
+py-1
+rounded
+text-sm
+"
+>
+
++ Add
+
+</button>
+
+}
      </div>
       
 
@@ -319,21 +352,49 @@ e.payment_mode
           </div>
 
           <div className="flex items-center gap-3 text-sm">
-            <button
-              onClick={() =>
-                router.push(`/finance/expenses/add?id=${e.id}`)
-              }
-              className="text-blue-600"
-            >
-              Edit
-            </button>
+            {
+role !== "viewer"
 
-            <button
-              onClick={() => handleDelete(e.id)}
-              className="text-red-600"
-            >
-              Delete
-            </button>
+&&
+
+<button
+onClick={() =>
+router.push(
+`/finance/expenses/add?id=${e.id}`
+)
+}
+className="
+text-blue-600
+"
+>
+
+Edit
+
+</button>
+
+}
+
+            {
+role !== "viewer"
+
+&&
+
+<button
+onClick={() =>
+handleDelete(
+e.id
+)
+}
+className="
+text-red-600
+"
+>
+
+Delete
+
+</button>
+
+}
           </div>
         </div>
       ))}
