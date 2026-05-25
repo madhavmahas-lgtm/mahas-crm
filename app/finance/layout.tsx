@@ -77,19 +77,35 @@ export default function FinanceLayout({
       {/* TOP NAVBAR */}
       <div className="flex justify-between items-center p-3 border-b bg-white sticky top-0 z-10">
 
-        <div className="flex gap-4 text-sm font-semibold overflow-x-auto">
-          <a href="/finance/bookings">
-            Bookings
-          </a>
+        <div className="
+flex
+gap-4
+text-sm
+font-semibold
+overflow-x-auto
+">
 
-          <a href="/finance/expenses">
-            Expenses
-          </a>
+<a href="/finance">
+🏠 Finance Center
+</a>
 
-          <a href="/finance/dashboard">
-            Dashboard
-          </a>
-        </div>
+<a href="/finance/bookings">
+📖 Bookings
+</a>
+
+<a href="/finance/expenses">
+💰 Expenses
+</a>
+
+<a href="/finance/dashboard">
+📊 Dashboard
+</a>
+
+<a href="/finance/mis">
+👑 MIS
+</a>
+
+</div>
 
         <button
           onClick={() => {
