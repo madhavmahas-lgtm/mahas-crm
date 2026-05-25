@@ -44,6 +44,15 @@ nextMonth
 );
 
 const [
+propertyFilter,
+setPropertyFilter
+]
+=
+useState(
+"All Properties"
+);
+
+const [
 data,
 setData
 ] = useState({
@@ -86,6 +95,7 @@ await supabase
 .select(
 `
 id,
+property,
 gross_amount,
 checkout_date,
 source_type,
@@ -111,6 +121,7 @@ await supabase
 )
 .select(
 `
+property,
 gross_amount,
 net_amount,
 date,
@@ -146,8 +157,29 @@ card:0
 
 let categorySummary:any = {};
 let sourceSummary:any = {};
+let filteredBookings =
+bookings || [];
 
-(bookings || [])
+if(
+propertyFilter
+!==
+"All Properties"
+){
+
+filteredBookings =
+filteredBookings.filter(
+(b:any)=>
+
+b.property
+===
+propertyFilter
+
+);
+
+}
+
+
+(filteredBookings || [])
 .forEach(
 (b:any)=>{
 
@@ -206,7 +238,58 @@ gross;
 }
 );
 
-(expenses || [])
+let filteredExpenses =
+expenses || [];
+
+if(
+propertyFilter
+===
+"Mahas Elite"
+){
+
+filteredExpenses =
+filteredExpenses.filter(
+(e:any)=>
+
+e.property
+===
+"Mahas Elite"
+
+||
+
+e.property
+===
+"Common"
+
+);
+
+}
+
+else if(
+propertyFilter
+===
+"Mahas Vrindavan"
+){
+
+filteredExpenses =
+filteredExpenses.filter(
+(e:any)=>
+
+e.property
+===
+"Mahas Vrindavan"
+
+||
+
+e.property
+===
+"Common"
+
+);
+
+}
+
+(filteredExpenses || [])
 .forEach(
 (e:any)=>{
 
@@ -219,7 +302,43 @@ e.net_amount
 0
 );
 
-expense += amt;
+let finalAmt =
+amt;
+
+if(
+e.property
+===
+"Common"
+){
+
+if(
+propertyFilter
+===
+"Mahas Elite"
+){
+
+finalAmt =
+amt / 3;
+
+}
+
+else if(
+propertyFilter
+===
+"Mahas Vrindavan"
+){
+
+finalAmt =
+(
+amt * 2
+)
+/3;
+
+}
+
+}
+
+expense += finalAmt;
 
 const cat =
 e.category
@@ -240,7 +359,7 @@ cat
 
 categorySummary[
 cat
-] += amt;
+] += finalAmt;
 
 const mode =
 (
@@ -256,7 +375,7 @@ mode.includes(
 )
 ){
 
-paymentSummary.bank += amt;
+paymentSummary.bank += finalAmt;
 
 }
 
@@ -266,7 +385,7 @@ mode.includes(
 )
 ){
 
-paymentSummary.cash += amt;
+paymentSummary.cash += finalAmt;
 
 }
 
@@ -276,7 +395,7 @@ mode.includes(
 )
 ){
 
-paymentSummary.upi += amt;
+paymentSummary.upi += finalAmt;
 
 }
 
@@ -286,7 +405,7 @@ mode.includes(
 )
 ){
 
-paymentSummary.card += amt;
+paymentSummary.card += finalAmt;
 
 }
 
@@ -308,7 +427,7 @@ payment_amount
 `
 );
 
-(bookings || [])
+(filteredBookings || [])
 .forEach(
 (b:any)=>{
 
@@ -381,7 +500,8 @@ useEffect(()=>{
 loadMIS();
 },[
 fromDate,
-toDate
+toDate,
+propertyFilter
 ]);
 
 const fmt =
@@ -447,6 +567,35 @@ className="
 input
 "
 />
+
+<select
+value={
+propertyFilter
+}
+onChange={(e)=>
+setPropertyFilter(
+e.target.value
+)
+}
+className="
+input
+col-span-2
+"
+>
+
+<option>
+All Properties
+</option>
+
+<option>
+Mahas Elite
+</option>
+
+<option>
+Mahas Vrindavan
+</option>
+
+</select>
 
 </div>
 
