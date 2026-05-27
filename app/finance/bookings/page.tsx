@@ -448,16 +448,30 @@ sessionStorage.getItem(
 
 },[]);
 
-  useEffect(() => {
-    fetchBookings();
-  }, [
-    propertyFilter,
-    sourceFilter,
-    fromDate,
-    toDate,
-    invoiceFilter,
-    nameFilter,
-  ]);
+  useEffect(()=>{
+
+if(
+role !== "admin"
+&&
+!userProperty
+){
+
+return;
+
+}
+
+fetchBookings();
+
+},[
+propertyFilter,
+sourceFilter,
+fromDate,
+toDate,
+invoiceFilter,
+nameFilter,
+userProperty,
+role
+]);
 
 
   const handleDelete = async (id: string) => {
@@ -470,8 +484,15 @@ sessionStorage.getItem(
       .eq("id", id);
 
     if (error) {
-      alert(error.message);
-    } else {
+
+alert(
+"You are not authorized to delete bookings"
+);
+
+return;
+
+} 
+      else {
       fetchBookings(); // refresh list
     }
   };
@@ -508,24 +529,32 @@ sessionStorage.getItem(
     &&
 
     <button
-    onClick={() =>
-    router.push(
-    "/finance/bookings/add"
-    )
-    }
-    className="
-    bg-black
-    text-white
-    px-3
-    py-1
-    rounded
-    "
-    >
+onClick={() => {
 
-    + Add
+sessionStorage.setItem(
+"finance_nav",
+"booking_add"
+);
 
-    </button>
+router.push(
+"/finance/bookings/add"
+);
 
+}}
+
+className="
+bg-black
+text-white
+px-3
+py-1
+rounded
+"
+>
+
++ Add
+
+</button>
+    
     }
 
     </div>
@@ -1297,11 +1326,18 @@ role !== "viewer"
 
 (
 <button
-onClick={() =>
+onClick={() => {
+
+sessionStorage.setItem(
+"finance_nav",
+"booking_edit"
+);
+
 router.push(
 `/finance/bookings/add?id=${b.id}`
-)
-}
+);
+
+}}
 className="
 px-3
 py-1
@@ -1318,8 +1354,9 @@ Edit
 )
 
 }
+
 {
-role !== "viewer"
+role === "admin"
 
 &&
 
@@ -1344,6 +1381,25 @@ Delete
 
 </button>
 )
+
+}
+
+{
+role !== "admin"
+
+&&
+role !== "viewer"
+
+&&
+
+<p className="
+text-xs
+text-red-500
+">
+
+Delete not authorized
+
+</p>
 
 }
 </div>

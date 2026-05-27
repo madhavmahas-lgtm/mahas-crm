@@ -11,6 +11,8 @@ export default function AddExpense() {
   const [editId, setEditId] = useState<string | null>(null);
   const [role, setRole] = useState("");
   const [userProperty, setUserProperty] = useState("");
+  const [authenticated, setAuthenticated] = useState(false);
+
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -49,6 +51,30 @@ export default function AddExpense() {
       .single();
 
     if (!error && data) {
+if(
+role !== "admin"
+&&
+userProperty
+&&
+data.property
+!== userProperty
+){
+
+alert(
+"Access denied"
+);
+
+sessionStorage.removeItem(
+"finance_nav"
+);
+
+router.push(
+"/finance/expenses"
+);
+
+return;
+
+}
       setForm({
         date: data.date || "",
         property: data.property || "",
@@ -71,18 +97,86 @@ export default function AddExpense() {
 
 useEffect(()=>{
 
-setRole(
+const auth =
+sessionStorage.getItem(
+"finance_auth"
+);
+
+const nav =
+sessionStorage.getItem(
+"finance_nav"
+);
+
+const currentRole =
 sessionStorage.getItem(
 "finance_role"
 )
-||""
-);
+||"";
 
-setUserProperty(
+const currentProperty =
 sessionStorage.getItem(
 "finance_property"
 )
-||""
+||"";
+
+if(
+auth !== "true"
+){
+
+router.push(
+"/finance"
+);
+
+return;
+
+}
+
+if(
+nav !==
+"expense_add"
+
+&&
+
+nav !==
+"expense_edit"
+
+){
+
+router.push(
+"/finance"
+);
+
+return;
+
+}
+
+if(
+currentRole ===
+"viewer"
+){
+
+sessionStorage.removeItem(
+"finance_nav"
+);
+
+router.push(
+"/finance/expenses"
+);
+
+return;
+
+}
+
+setAuthenticated(
+true
+);
+
+setRole(
+currentRole
+);
+
+setUserProperty(
+currentProperty
 );
 
 },[]);
@@ -114,10 +208,42 @@ userProperty,
 editId
 ]);
 
-useEffect(() => {
-  if (!editId) return;
-  fetchExpense();
-}, [editId]);
+useEffect(()=>{
+
+if(
+!editId
+){
+
+return;
+
+}
+
+if(
+!authenticated
+){
+
+return;
+
+}
+
+if(
+role !== "admin"
+&&
+!userProperty
+){
+
+return;
+
+}
+
+fetchExpense();
+
+},[
+editId,
+authenticated,
+role,
+userProperty
+]);
 
 
   const handleSubmit = async () => {
@@ -175,6 +301,9 @@ useEffect(() => {
       alert(error.message);
     } else {
       alert(editId ? "Updated successfully" : "Expense added");
+sessionStorage.removeItem(
+"finance_nav"
+);
 
       if (editId) {
         router.push("/finance/expenses");
@@ -196,6 +325,13 @@ useEffect(() => {
     }
   };
 
+if(
+!authenticated
+){
+
+return null;
+
+}
       
   return (
     <div className="p-4 max-w-xl mx-auto space-y-3">

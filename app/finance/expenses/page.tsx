@@ -179,8 +179,20 @@ paymentModeFilter
       .eq("id", id);
 
     if (error) {
-      alert(error.message);
-    } else {
+
+console.log(
+"DELETE ERROR",
+error
+);
+
+alert(
+"You are not authorized to delete expenses"
+);
+
+return;
+
+}
+      else {
       fetchExpenses();
     }
   };
@@ -338,11 +350,18 @@ role !== "viewer"
 &&
 
 <button
-onClick={() =>
+onClick={() => {
+
+sessionStorage.setItem(
+"finance_nav",
+"expense_add"
+);
+
 router.push(
 "/finance/expenses/add"
-)
-}
+);
+
+}}
 className="
 bg-black
 text-white
@@ -403,11 +422,18 @@ role !== "viewer"
 &&
 
 <button
-onClick={() =>
+onClick={() => {
+
+sessionStorage.setItem(
+"finance_nav",
+"expense_edit"
+);
+
 router.push(
 `/finance/expenses/add?id=${e.id}`
-)
-}
+);
+
+}}
 className="
 text-blue-600
 "
@@ -419,8 +445,8 @@ Edit
 
 }
 
-            {
-role !== "viewer"
+{
+role === "admin"
 
 &&
 
@@ -438,6 +464,25 @@ text-red-600
 Delete
 
 </button>
+
+}
+
+{
+role !== "admin"
+
+&&
+role !== "viewer"
+
+&&
+
+<p className="
+text-xs
+text-red-500
+">
+
+Delete not authorized
+
+</p>
 
 }
           </div>
