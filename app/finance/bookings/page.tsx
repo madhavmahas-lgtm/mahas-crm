@@ -34,6 +34,8 @@ export default function BookingsList() {
   const router = useRouter();
   const [role, setRole] = useState("");
 
+  const [userProperty, setUserProperty] = useState("");
+
   const fetchBookings = async () => {
     let query = supabase
   .from("bookings")
@@ -82,8 +84,28 @@ if (
     );
 }
     // PROPERTY FILTER
-    if (propertyFilter) {
-      query = query.eq("property", propertyFilter);
+    if(
+    userProperty
+    ){
+
+    query =
+    query.eq(
+    "property",
+    userProperty
+    );
+
+    }
+
+    else if(
+    propertyFilter
+    ){
+
+    query =
+    query.eq(
+    "property",
+    propertyFilter
+    );
+
     }
 
     // SOURCE FILTER
@@ -415,11 +437,16 @@ sessionStorage.getItem(
 "finance_role"
 )
 ||""
+);
 
+setUserProperty(
+sessionStorage.getItem(
+"finance_property"
+)
+||""
 );
 
 },[]);
-
 
   useEffect(() => {
     fetchBookings();
@@ -885,23 +912,56 @@ v.outstanding
     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
 
       <select
-        value={propertyFilter}
-        onChange={(e)=>
-          setPropertyFilter(e.target.value)
+
+      value={
+      userProperty
+      ||
+      propertyFilter
+      }
+        onChange={(e)=>{
+
+        if(
+        !userProperty
+        ){
+
+        setPropertyFilter(
+        e.target.value
+        );
+
         }
+
+        }}
+
         className="border p-2 rounded"
       >
+
+        {
+        !userProperty
+
+        &&
+
         <option value="">
-          All Properties
+        All Properties
+        </option>
+
+        }
+
+        {
+        !userProperty
+        &&
+        <>
+
+        <option>
+        Mahas Elite
         </option>
 
         <option>
-          Mahas Elite
+        Mahas Vrindavan
         </option>
 
-        <option>
-          Mahas Vrindavan
-        </option>
+        </>
+
+        }
 
       </select>
 

@@ -9,6 +9,9 @@ import { useEffect } from "react";
 export default function AddExpense() {
   const router = useRouter();
   const [editId, setEditId] = useState<string | null>(null);
+  const [role, setRole] = useState("");
+  const [userProperty, setUserProperty] = useState("");
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
@@ -65,6 +68,52 @@ export default function AddExpense() {
   };
 
 // FETCH DATA
+
+useEffect(()=>{
+
+setRole(
+sessionStorage.getItem(
+"finance_role"
+)
+||""
+);
+
+setUserProperty(
+sessionStorage.getItem(
+"finance_property"
+)
+||""
+);
+
+},[]);
+
+useEffect(()=>{
+
+if(
+userProperty
+&&
+!editId
+){
+
+setForm(
+(prev)=>({
+
+...prev,
+
+property:
+userProperty
+
+})
+
+);
+
+}
+
+},[
+userProperty,
+editId
+]);
+
 useEffect(() => {
   if (!editId) return;
   fetchExpense();
@@ -164,17 +213,76 @@ useEffect(() => {
       />
 
       {/* PROPERTY */}
-      <select
-        name="property"
-        value={form.property}
-        onChange={handleChange}
-        className="input"
-      >
-        <option value="">Select Property *</option>
-        <option>Mahas Elite</option>
-        <option>Mahas Vrindavan</option>
-        <option>Common</option>
-      </select>
+
+<select
+
+name="property"
+
+value={
+userProperty
+||
+form.property
+}
+
+onChange={(e)=>{
+
+if(
+!userProperty
+){
+
+handleChange(
+e
+);
+
+}
+
+}}
+
+className="input"
+
+>
+
+{
+!userProperty
+
+&&
+
+<option value="">
+Select Property *
+</option>
+
+}
+
+{
+userProperty
+
+?
+
+<option>
+{userProperty}
+</option>
+
+:
+
+<>
+
+<option>
+Mahas Elite
+</option>
+
+<option>
+Mahas Vrindavan
+</option>
+
+<option>
+Common
+</option>
+
+</>
+
+}
+
+</select>
 
       {/* CATEGORY */}
       <select

@@ -28,6 +28,9 @@ export default function AddBooking() {
   const router = useRouter();
 
   const [editId, setEditId] = useState<string | null>(null);
+  const [role, setRole] = useState("");
+  const [userProperty, setUserProperty] = useState("");
+
 
   useEffect(() => {
   if (typeof window !== "undefined") {
@@ -69,11 +72,50 @@ export default function AddBooking() {
   }
 };
  
-useEffect(() => {
-  if (editId) {
-    fetchBooking();
-  }
-}, [editId]); 
+useEffect(()=>{
+
+setRole(
+sessionStorage.getItem(
+"finance_role"
+)
+||""
+);
+
+setUserProperty(
+sessionStorage.getItem(
+"finance_property"
+)
+||""
+);
+
+},[]);
+
+useEffect(()=>{
+
+if(
+userProperty
+&&
+!editId
+){
+
+setForm(
+(prev)=>({
+
+...prev,
+
+property:
+userProperty
+
+})
+
+);
+
+}
+
+},[
+userProperty,
+editId
+]);
 
   const handleChange = (e: any) => {
     const { name, value } = e.target;
@@ -201,12 +243,65 @@ if (editId) {
           className="input"
         />
 
-        <select name="property" 
-          value={form.property}
-          onChange={handleChange} className="input">
-          <option value="">Select Property *</option>
-          <option>Mahas Elite</option>
-          <option>Mahas Vrindavan</option>
+        <select
+        name="property"
+
+        value={
+        userProperty
+        ||
+        form.property
+        }
+          onChange={(e)=>{
+
+          if(
+          !userProperty
+          ){
+
+          handleChange(
+          e
+          );
+
+          }
+
+          }}
+
+          className="input">
+
+          {
+          !userProperty
+
+          &&
+
+          <option value="">
+          Select Property *
+          </option>
+
+          }
+
+          {
+          userProperty
+          ?
+
+          <option>
+          {userProperty}
+          </option>
+
+          :
+
+          <>
+
+          <option>
+          Mahas Elite
+          </option>
+
+          <option>
+          Mahas Vrindavan
+          </option>
+
+          </>
+
+          }
+
         </select>
       </div>
 

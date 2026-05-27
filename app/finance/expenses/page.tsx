@@ -47,6 +47,7 @@ setPaymentModeFilter
 
   const router = useRouter();
   const [role, setRole] = useState("");
+  const [userProperty, setUserProperty] = useState("");
 
   const fetchExpenses =
 async()=>{
@@ -83,6 +84,18 @@ toDate
 }
 
 if(
+userProperty
+){
+
+query =
+query.eq(
+"property",
+userProperty
+);
+
+}
+
+else if(
 propertyFilter
 ){
 
@@ -136,7 +149,13 @@ sessionStorage.getItem(
 "finance_role"
 )
 ||""
+);
 
+setUserProperty(
+sessionStorage.getItem(
+"finance_property"
+)
+||""
 );
 
 },[]);
@@ -209,13 +228,23 @@ rounded
 
 <select
 value={
+userProperty
+||
 propertyFilter
 }
-onChange={(e)=>
+onChange={(e)=>{
+
+if(
+!userProperty
+){
+
 setPropertyFilter(
 e.target.value
-)
+);
+
 }
+
+}}
 className="
 border
 p-2
@@ -224,9 +253,21 @@ col-span-2
 "
 >
 
+{
+!userProperty
+
+&&
+
 <option value="">
 All Properties
 </option>
+
+}
+
+{
+!userProperty
+&&
+<>
 
 <option>
 Mahas Elite
@@ -239,6 +280,10 @@ Mahas Vrindavan
 <option>
 Common
 </option>
+
+</>
+
+}
 
 </select>
 
