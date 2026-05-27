@@ -67,20 +67,73 @@ export default function PaymentsPage() {
       return;
     }
 
-    const { error } = await supabase.from("payments").insert([
-      {
-        booking_id: bookingId,
-        payment_date: form.payment_date,
-        payment_mode: form.payment_mode,
-        payment_amount: Number(form.payment_amount || 0),
-        card_charges: Number(form.card_charges || 0),
-      },
-    ]);
+    const payload = {
+
+booking_id:
+bookingId,
+
+payment_date:
+form.payment_date,
+
+payment_mode:
+form.payment_mode,
+
+payment_amount:
+Number(
+form.payment_amount || 0
+),
+
+card_charges:
+Number(
+form.card_charges || 0
+)
+
+};
+
+const { error } =
+await supabase
+.from(
+"payments"
+)
+.insert([
+payload
+]);
 
     if (error) {
       console.error(error);
       alert(error.message);
     } else {
+const username =
+sessionStorage.getItem(
+"finance_user"
+)
+||
+"unknown";
+
+await supabase
+.from(
+"finance_audit"
+)
+.insert([{
+
+username,
+
+action:
+"CREATE",
+
+module:
+"payments",
+
+record_id:
+bookingId,
+
+old_data:
+null,
+
+new_data:
+payload
+
+}]);
       alert("Payment added");
 
       // RESET FORM
@@ -106,12 +159,64 @@ export default function PaymentsPage() {
 
   const handleDelete = async (id: string) => {
     const confirmDelete = confirm("Delete this payment?");
+const username =
+sessionStorage.getItem(
+"finance_user"
+)
+||
+"unknown";
+
+const {
+data: oldPayment
+}
+=
+await supabase
+.from(
+"payments"
+)
+.select("*")
+.eq(
+"id",
+id
+)
+.single();
     if (!confirmDelete) return;
 
-    const { error } = await supabase
-      .from("payments")
-      .delete()
-      .eq("id", id);
+    await supabase
+.from(
+"finance_audit"
+)
+.insert([{
+
+username,
+
+action:
+"DELETE",
+
+module:
+"payments",
+
+record_id:
+id,
+
+old_data:
+oldPayment,
+
+new_data:
+null
+
+}]);
+
+const { error } =
+await supabase
+.from(
+"payments"
+)
+.delete()
+.eq(
+"id",
+id
+);
 
     if (error) {
       alert(error.message);
