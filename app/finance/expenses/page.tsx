@@ -171,12 +171,64 @@ paymentModeFilter
 
   const handleDelete = async (id: string) => {
     const confirmDelete = confirm("Delete this expense?");
+const username =
+sessionStorage.getItem(
+"finance_user"
+)
+||
+"unknown";
+
+const {
+data: oldExpense
+}
+=
+await supabase
+.from(
+"expenses"
+)
+.select("*")
+.eq(
+"id",
+id
+)
+.single();
     if (!confirmDelete) return;
 
-    const { error } = await supabase
-      .from("expenses")
-      .delete()
-      .eq("id", id);
+    await supabase
+.from(
+"finance_audit"
+)
+.insert([{
+
+username,
+
+action:
+"DELETE",
+
+module:
+"expenses",
+
+record_id:
+id,
+
+old_data:
+oldExpense,
+
+new_data:
+null
+
+}]);
+
+const { error } =
+await supabase
+.from(
+"expenses"
+)
+.delete()
+.eq(
+"id",
+id
+);
 
     if (error) {
 

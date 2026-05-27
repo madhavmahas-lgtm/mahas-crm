@@ -222,11 +222,22 @@ role === "admin"
 role === "admin"
 &&
 
+<a href="/finance/audit">
+📋 Audit
+</a>
+
+}
+
+{
+role === "admin"
+&&
+
 <a href="/finance/mis">
 👑 MIS
 </a>
 
 }
+
 </div>
 
         <button

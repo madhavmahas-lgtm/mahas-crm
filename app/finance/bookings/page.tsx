@@ -476,12 +476,64 @@ role
 
   const handleDelete = async (id: string) => {
     const confirmDelete = confirm("Delete this booking?");
+const username =
+sessionStorage.getItem(
+"finance_user"
+)
+||
+"unknown";
+
+const {
+data: oldBooking
+}
+=
+await supabase
+.from(
+"bookings"
+)
+.select("*")
+.eq(
+"id",
+id
+)
+.single();
     if (!confirmDelete) return;
 
-    const { error } = await supabase
-      .from("bookings")
-      .delete()
-      .eq("id", id);
+    await supabase
+.from(
+"finance_audit"
+)
+.insert([{
+
+username,
+
+action:
+"DELETE",
+
+module:
+"bookings",
+
+record_id:
+id,
+
+old_data:
+oldBooking,
+
+new_data:
+null
+
+}]);
+
+const { error } =
+await supabase
+.from(
+"bookings"
+)
+.delete()
+.eq(
+"id",
+id
+);
 
     if (error) {
 
