@@ -12,7 +12,7 @@ export default function AddExpense() {
   const [role, setRole] = useState("");
   const [userProperty, setUserProperty] = useState("");
   const [authenticated, setAuthenticated] = useState(false);
-
+  const [oldExpense, setOldExpense] = useState<any>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -51,6 +51,9 @@ export default function AddExpense() {
       .single();
 
     if (!error && data) {
+setOldExpense(
+data
+);
 if(
 role !== "admin"
 &&
@@ -252,55 +255,121 @@ userProperty
       return;
     }
 
+const payload = {
+
+date:
+form.date,
+
+property:
+form.property,
+
+category:
+form.category,
+
+paid_to:
+form.paid_to,
+
+payment_mode:
+form.payment_mode,
+
+net_amount:
+Number(
+form.net_amount || 0
+),
+
+gst_amount:
+Number(
+form.gst_amount || 0
+),
+
+gross_amount:
+Number(
+form.gross_amount || 0
+),
+
+supplier_invoice:
+form.supplier_invoice,
+
+supplier_gst:
+form.supplier_gst,
+
+notes:
+form.notes
+
+};
+
     let error;
 
     if (editId) {
       const res = await supabase
         .from("expenses")
-        .update({
-          date: form.date,
-          property: form.property,
-          category: form.category,
-          paid_to: form.paid_to,
-          payment_mode: form.payment_mode,
-
-          net_amount: Number(form.net_amount || 0),
-          gst_amount: Number(form.gst_amount || 0),
-          gross_amount: Number(form.gross_amount || 0),
-
-          supplier_invoice: form.supplier_invoice,
-          supplier_gst: form.supplier_gst,
-          notes: form.notes,
-        })
+        .update(
+        payload
+        )
         .eq("id", editId);
 
       error = res.error;
     } else {
-      const res = await supabase.from("expenses").insert([
-        {
-          date: form.date,
-          property: form.property,
-          category: form.category,
-          paid_to: form.paid_to,
-          payment_mode: form.payment_mode,
-
-          net_amount: Number(form.net_amount || 0),
-          gst_amount: Number(form.gst_amount || 0),
-          gross_amount: Number(form.gross_amount || 0),
-
-          supplier_invoice: form.supplier_invoice,
-          supplier_gst: form.supplier_gst,
-          notes: form.notes,
-        },
-      ]);
+      const res = await supabase.from("expenses")
+        .insert([
+        payload
+        ]);
 
       error = res.error;
     }
 
     if (error) {
       alert(error.message);
-    } else {
-      alert(editId ? "Updated successfully" : "Expense added");
+    } 
+      else {
+
+const username =
+sessionStorage.getItem(
+"finance_user"
+)
+||
+"unknown";
+
+await supabase
+.from(
+"finance_audit"
+)
+.insert([{
+
+username,
+
+action:
+editId
+?
+"UPDATE"
+:
+"CREATE",
+
+module:
+"expenses",
+
+record_id:
+editId || "",
+
+old_data:
+editId
+?
+oldExpense
+:
+null,
+
+new_data:
+payload
+
+}]);
+
+alert(
+editId
+?
+"Updated successfully"
+:
+"Expense added"
+);
 sessionStorage.removeItem(
 "finance_nav"
 );

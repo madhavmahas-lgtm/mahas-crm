@@ -31,7 +31,7 @@ export default function AddBooking() {
   const [role, setRole] = useState("");
   const [authenticated, setAuthenticated] = useState(false);
   const [userProperty, setUserProperty] = useState("");
-
+  const [oldBooking, setOldBooking] = useState<any>(null);
 
   useEffect(() => {
   if (typeof window !== "undefined") {
@@ -49,6 +49,9 @@ export default function AddBooking() {
     .single();
 
   if (!error && data) {
+setOldBooking(
+data
+);
 
 if(
 role !== "admin"
@@ -325,6 +328,46 @@ const handleSubmit = async () => {
   if (error) {
     alert(error.message);
   } else {
+const username =
+sessionStorage.getItem(
+"finance_user"
+)
+||
+"unknown";
+
+await supabase
+.from(
+"finance_audit"
+)
+.insert([{
+
+username,
+
+action:
+editId
+?
+"UPDATE"
+:
+"CREATE",
+
+module:
+"bookings",
+
+record_id:
+editId || "",
+
+old_data:
+editId
+?
+oldBooking
+:
+null,
+
+new_data:
+payload
+
+}]);
+
     alert(editId ? "Updated successfully" : "Saved successfully");
 
 sessionStorage.removeItem(
