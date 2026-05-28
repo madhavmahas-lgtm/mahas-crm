@@ -45,6 +45,14 @@ nextMonth.setMonth(
 nextMonth.getMonth()+1
 );
 
+const [role,setRole] =
+useState("");
+
+const [
+userProperty,
+setUserProperty
+] = useState("");
+
 const [filters,setFilters] =
 useState({
 
@@ -57,7 +65,6 @@ nextMonth
 .split("T")[0]
 
 });
-
 
 const fetchData = async () => {
   // BOOKINGS QUERY
@@ -73,6 +80,18 @@ const fetchData = async () => {
   if (filters.to) {
     bookingQuery = bookingQuery.lte("checkout_date",filters.to);
   }
+
+if(
+userProperty
+){
+
+bookingQuery =
+bookingQuery.eq(
+"property",
+userProperty
+);
+
+}
 
   const { data: bookings } = await bookingQuery;
 
@@ -96,6 +115,18 @@ category
   if (filters.to) {
     expenseQuery = expenseQuery.lte("date", filters.to);
   }
+
+if(
+userProperty
+){
+
+expenseQuery =
+expenseQuery.eq(
+"property",
+userProperty
+);
+
+}
 
   const { data: expenses } = await expenseQuery;
 
@@ -258,9 +289,32 @@ vrindavanExpenses +=
   });
 };
 
+    useEffect(()=>{
+
+    setRole(
+    sessionStorage.getItem(
+    "finance_role"
+    )
+    ||""
+    );
+
+    setUserProperty(
+    sessionStorage.getItem(
+    "finance_property"
+    )
+    ||""
+    );
+
+    },[]);
+
     useEffect(() => {
-      fetchData();
-    }, [filters]);
+
+    fetchData();
+
+    }, [
+    filters,
+    userProperty
+    ]);
 
 const fmt =
 (v:number)=>
@@ -354,6 +408,11 @@ Profit
 
 <tbody>
 
+{
+!userProperty
+
+&&
+
 <tr className="border-b">
 
 <td className="p-2">
@@ -411,6 +470,17 @@ data.profit
 </td>
 
 </tr>
+}
+
+{
+(
+!userProperty
+||
+userProperty ===
+"Mahas Elite"
+)
+
+&&
 
 <tr className="border-b">
 
@@ -471,6 +541,17 @@ data.eliteExpenses
 </td>
 
 </tr>
+}
+
+{
+(
+!userProperty
+||
+userProperty ===
+"Mahas Vrindavan"
+)
+
+&&
 
 <tr>
 
@@ -531,6 +612,7 @@ data.vrindavanExpenses
 </td>
 
 </tr>
+}
 
 </tbody>
 
