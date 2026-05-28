@@ -463,9 +463,17 @@ userProperty
 
 ?
 
+<>
+
 <option>
 {userProperty}
 </option>
+
+<option>
+Common
+</option>
+
+</>
 
 :
 
@@ -510,6 +518,8 @@ Common
         <option>GST Payment</option>
         <option>TDS Payment</option>
         <option>Loan Repay</option>
+        <option>Marketing Charges</option>
+        <option>Accountant Charges</option>
         <option>Misc</option>
       </select>
 
