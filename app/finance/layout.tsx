@@ -214,6 +214,21 @@ role === "admin"
 ||
 role === "director"
 )
+
+&&
+
+<a href="/finance/petty-cash">
+💵 Petty Cash
+</a>
+
+}
+
+{
+(
+role === "admin"
+||
+role === "director"
+)
 &&
 
 <a href="/finance/dashboard">

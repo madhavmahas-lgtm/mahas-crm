@@ -7,11 +7,24 @@ useState
 from "react";
 
 import {
+useRouter
+}
+from "next/navigation";
+
+import {
 supabase
 }
 from "@/lib/supabase";
 
 export default function PettyCashPage(){
+
+const router =
+useRouter();
+
+const [
+role,
+setRole
+] = useState("");
 
 const [
 entries,
@@ -37,6 +50,46 @@ amount:"",
 notes:""
 
 });
+
+useEffect(()=>{
+
+useEffect(()=>{
+
+const r =
+sessionStorage.getItem(
+"finance_role"
+)
+||"";
+
+setRole(r);
+
+if(
+r !== "admin"
+&&
+r !== "director"
+){
+
+router.push(
+"/finance"
+);
+
+}
+
+},[]);
+
+if(
+role !== "admin"
+&&
+role !== "director"
+){
+
+router.push(
+"/finance"
+);
+
+}
+
+},[]);
 
 const fetchEntries =
 async()=>{
@@ -336,6 +389,11 @@ col-span-2
 "
 />
 
+{
+role === "admin"
+
+&&
+
 <button
 onClick={handleSave}
 className="
@@ -350,6 +408,8 @@ col-span-2
 Save
 
 </button>
+
+}
 
 </div>
 
