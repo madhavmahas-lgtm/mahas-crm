@@ -44,6 +44,16 @@ nextMonth
 );
 
 const [
+role,
+setRole
+] = useState("");
+
+const [
+userProperty,
+setUserProperty
+] = useState("");
+
+const [
 propertyFilter,
 setPropertyFilter
 ]
@@ -497,6 +507,36 @@ sourceSummary
 };
 
 useEffect(()=>{
+
+const r =
+sessionStorage.getItem(
+"finance_role"
+)
+||"";
+
+const p =
+sessionStorage.getItem(
+"finance_property"
+)
+||"";
+
+setRole(r);
+
+setUserProperty(p);
+
+if(
+r === "director"
+&&
+p
+){
+
+setPropertyFilter(p);
+
+}
+
+},[]);
+
+useEffect(()=>{
 loadMIS();
 },[
 fromDate,
@@ -567,7 +607,15 @@ className="
 input
 "
 />
+======
+{
+!(
+role === "director"
+&&
+userProperty
+)
 
+&&
 <select
 value={
 propertyFilter
@@ -596,6 +644,7 @@ Mahas Vrindavan
 </option>
 
 </select>
+}
 
 </div>
 
