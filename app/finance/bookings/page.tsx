@@ -576,11 +576,13 @@ return;
     </button>
 
     {
-    role !== "viewer"
+role !== "viewer"
+&&
+role !== "director"
 
-    &&
+&&
 
-    <button
+<button
 onClick={() => {
 
 sessionStorage.setItem(
@@ -1371,8 +1373,11 @@ status === "Paid"
   Payments
 </button>
 
+
 {
 role !== "viewer"
+&&
+role !== "director"
 
 &&
 

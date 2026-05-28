@@ -10,6 +10,7 @@ export default function PaymentsPage() {
   const bookingId = params.id as string;
 
   const [payments, setPayments] = useState<any[]>([]);
+  const [role, setRole] = useState("");
 
   const [form, setForm] = useState({
     payment_date: new Date().toISOString().split("T")[0],
@@ -48,10 +49,22 @@ export default function PaymentsPage() {
 
 
   useEffect(() => {
-    if (bookingId) {
-      fetchPayments();
-      fetchBooking();
-    }
+
+  setRole(
+  sessionStorage.getItem(
+  "finance_role"
+  )
+  ||""
+  );
+
+  if (bookingId) {
+
+  fetchPayments();
+
+  fetchBooking();
+
+  }
+
   }, [bookingId]);
 
 
@@ -277,12 +290,22 @@ id
           className="input"
         />
 
+        {
+        role !== "viewer"
+        &&
+        role !== "director"
+
+        &&
+
         <button
-          onClick={handleSubmit}
-          className="bg-black text-white p-2 rounded w-full"
+        onClick={handleSubmit}
+        className="bg-black text-white p-2 rounded w-full"
         >
           Add Payment
         </button>
+
+        }
+
       </div>
 
       {/* SUMMARY */}
@@ -307,12 +330,20 @@ id
               </p>
             </div>
 
+            {
+            role === "admin"
+
+            &&
+
             <button
               onClick={() => handleDelete(p.id)}
               className="text-red-500 text-sm"
             >
               Delete
             </button>
+
+            }
+
           </div>
          ))}
 

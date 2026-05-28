@@ -209,7 +209,11 @@ overflow-x-auto
 </a>
 
 {
+(
 role === "admin"
+||
+role === "director"
+)
 &&
 
 <a href="/finance/dashboard">
@@ -219,7 +223,11 @@ role === "admin"
 }
 
 {
+(
 role === "admin"
+||
+role === "director"
+)
 &&
 
 <a href="/finance/audit">
@@ -230,6 +238,20 @@ role === "admin"
 
 {
 role === "admin"
+&&
+
+<a href="/finance/users">
+👥 Users
+</a>
+
+}
+
+{
+(
+role === "admin"
+||
+role === "director"
+)
 &&
 
 <a href="/finance/mis">

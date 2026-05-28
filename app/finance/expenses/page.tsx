@@ -396,12 +396,15 @@ Debit Card
 
 </div>
 
-        {
+{
 role !== "viewer"
+&&
+role !== "director"
 
 &&
 
 <button
+
 onClick={() => {
 
 sessionStorage.setItem(
@@ -468,8 +471,10 @@ e.payment_mode
           </div>
 
           <div className="flex items-center gap-3 text-sm">
-            {
+{
 role !== "viewer"
+&&
+role !== "director"
 
 &&
 
