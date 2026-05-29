@@ -284,7 +284,11 @@ form.gst_amount || 0
 
 gross_amount:
 Number(
-form.gross_amount || 0
+form.net_amount || 0
+)
++
+Number(
+form.gst_amount || 0
 ),
 
 supplier_invoice:
@@ -583,11 +587,16 @@ Debit Card
       />
 
       <input
-        name="gross_amount"
-        value={form.gross_amount}
-        placeholder="Gross Amount (₹)"
-        onChange={handleChange}
-        className="input"
+       value={
+         (
+           Number(form.net_amount || 0)
+           +
+           Number(form.gst_amount || 0)
+         ).toString()
+       }
+       placeholder="Gross Amount (Auto)"
+       readOnly
+       className="input bg-gray-100"
       />
 
       {/* EXTRA */}
