@@ -53,8 +53,6 @@ notes:""
 
 useEffect(()=>{
 
-useEffect(()=>{
-
 const r =
 sessionStorage.getItem(
 "finance_role"
@@ -67,20 +65,6 @@ if(
 r !== "admin"
 &&
 r !== "director"
-){
-
-router.push(
-"/finance"
-);
-
-}
-
-},[]);
-
-if(
-role !== "admin"
-&&
-role !== "director"
 ){
 
 router.push(
