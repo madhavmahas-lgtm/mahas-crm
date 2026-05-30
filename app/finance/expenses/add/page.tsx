@@ -378,23 +378,7 @@ sessionStorage.removeItem(
 "finance_nav"
 );
 
-      if (editId) {
-        router.push("/finance/expenses");
-      } else {
-        setForm({
-          date: new Date().toISOString().split("T")[0],
-          property: "",
-          category: "",
-          paid_to: "",
-          payment_mode: "Bank Transfer",
-          net_amount: "",
-          gst_amount: "",
-          gross_amount: "",
-          supplier_invoice: "",
-          supplier_gst: "",
-          notes: "",
-        });
-      }
+      router.push("/finance/expenses");
     }
   };
 
