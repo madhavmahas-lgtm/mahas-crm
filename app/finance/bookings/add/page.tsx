@@ -462,30 +462,9 @@ sessionStorage.removeItem(
 "finance_nav"
 );
   
-if (editId) {
-  setTimeout(() => {
-    router.push("/finance/bookings");
-  }, 500);
-}  
-    // RESET FORM (only for new booking)
-    if (!editId) {
-      setForm({
-        property: "",
-        guest_name: "",
-        invoice_number: "",
-        booking_date: new Date().toISOString().split("T")[0],
-        checkout_date: "",
-        source_type: "",
-        gross_amount: "",
-        commission_amount: "",
-        gst_on_commission: "",
-        tds: "",
-        tcs: "",
-        gst_amount: 0,
-        net_amount: 0,
-        base_amount: 0,
-      });
-    }
+router.push(
+"/finance/bookings"
+);
   }
 };
 
