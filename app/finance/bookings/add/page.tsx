@@ -32,6 +32,7 @@ export default function AddBooking() {
   const [authenticated, setAuthenticated] = useState(false);
   const [userProperty, setUserProperty] = useState("");
   const [oldBooking, setOldBooking] = useState<any>(null);
+  const [invoiceError, setInvoiceError] = useState("");
 
   useEffect(() => {
   if (typeof window !== "undefined") {
@@ -254,8 +255,82 @@ role,
 userProperty
 ]);
 
+const checkInvoice =
+async()=>{
+
+const invoice =
+form.invoice_number
+.trim();
+
+if(
+invoice === ""
+){
+
+setInvoiceError("");
+
+return;
+
+}
+
+let query =
+supabase
+.from(
+"bookings"
+)
+.select(
+"id"
+)
+.eq(
+"invoice_number",
+invoice
+);
+
+if(
+editId
+){
+
+query =
+query.neq(
+"id",
+editId
+);
+
+}
+
+const {
+data
+}
+=
+await query;
+
+if(
+data
+&&
+data.length > 0
+){
+
+setInvoiceError(
+"Invoice number already exists"
+);
+
+}
+else{
+
+setInvoiceError("");
+
+}
+
+};
+
   const handleChange = (e: any) => {
     const { name, value } = e.target;
+if(
+name === "invoice_number"
+){
+
+setInvoiceError("");
+
+}
 
     const updated = { ...form, [name]: value };
 
@@ -290,6 +365,19 @@ const handleSubmit = async () => {
     alert("Please fill Guest Name, Property, and Gross Amount");
     return;
   }
+
+if(
+invoiceError
+){
+
+alert(
+"Please fix duplicate invoice number"
+);
+
+return;
+
+}
+
 
   const payload = {
     property: form.property,
@@ -430,8 +518,22 @@ return null;
           value={form.invoice_number}
           placeholder="Invoice Number"
           onChange={handleChange}
+          onBlur={checkInvoice}
           className="input"
         />
+
+{
+invoiceError
+&&
+
+<p className="
+text-red-500
+text-sm
+">
+⚠ {invoiceError}
+</p>
+
+}
 
         <select
         name="property"
