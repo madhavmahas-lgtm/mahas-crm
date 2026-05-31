@@ -275,6 +275,21 @@ role === "director"
 
 }
 
+{
+(
+role === "admin"
+||
+role === "director"
+)
+&&
+
+<a href="/finance/reports">
+📑 Reports
+</a>
+
+
+}
+
 </div>
 
         <button

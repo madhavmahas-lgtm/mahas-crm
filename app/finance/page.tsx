@@ -66,7 +66,22 @@ url:"/finance/mis"
 
 ]
 
+},
+
+{
+title:"Reports",
+
+items:[
+
+{
+name:"Booking Verification",
+url:"/finance/reports/booking-verification"
 }
+
+]
+
+}
+
 
 ];
 
