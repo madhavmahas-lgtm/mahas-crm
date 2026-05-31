@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+
 export default function BookingVerificationPage(){
 
 const [
@@ -313,6 +316,275 @@ const totalBalance =
 reportSummary.gross -
 reportSummary.paid;
 
+const exportPdf = ()=>{
+
+const doc =
+new jsPDF();
+
+doc.setFontSize(16);
+
+doc.text(
+"Booking Verification Report",
+14,
+15
+);
+
+doc.setFontSize(10);
+
+doc.text(
+`Property : ${property}`,
+14,
+25
+);
+
+doc.text(
+`From : ${startDate}`,
+14,
+32
+);
+
+doc.text(
+`To : ${endDate}`,
+14,
+39
+);
+
+doc.text(
+`Status : ${status}`,
+14,
+46
+);
+
+autoTable(
+doc,
+{
+startY:55,
+
+head:[
+[
+"Metric",
+"Value"
+]
+],
+
+body:[
+
+[
+"Total Bookings",
+reportSummary.bookings
+],
+
+[
+"Paid Bookings",
+reportSummary.paidBookings
+],
+
+[
+"Partial Bookings",
+reportSummary.partialBookings
+],
+
+[
+"No Payment Bookings",
+reportSummary.noPaymentBookings
+],
+
+[
+"Gross Revenue",
+reportSummary.gross.toLocaleString()
+],
+
+[
+"GST Collected",
+reportSummary.gst.toLocaleString()
+],
+
+[
+"Total Paid",
+reportSummary.paid.toLocaleString()
+],
+
+[
+"Balance",
+totalBalance.toLocaleString()
+]
+
+]
+
+}
+);
+
+let currentY =
+(doc as any)
+.lastAutoTable
+.finalY
++ 10;
+
+reportData.forEach(
+(booking:any)=>{
+
+const bookingPayments =
+getBookingPayments(
+booking.id
+);
+
+const paid =
+bookingPayments.reduce(
+(sum,p)=>
+
+sum +
+Number(
+p.payment_amount || 0
+),
+
+0
+);
+
+const gross =
+Number(
+booking.gross_amount || 0
+);
+
+const balance =
+gross - paid;
+
+let statusText =
+"PARTIAL";
+
+if(
+paid === 0
+){
+
+statusText =
+"NO PAYMENT";
+
+}
+else if(
+balance === 0
+){
+
+statusText =
+"PAID";
+
+}
+else if(
+paid > gross
+){
+
+statusText =
+"OVERPAID";
+
+}
+
+autoTable(
+doc,
+{
+startY:currentY,
+
+head:[
+[
+booking.invoice_number
+]
+],
+
+body:[
+
+[
+`Booking Date : ${booking.booking_date}`
+],
+
+[
+`Checkout Date : ${booking.checkout_date}`
+],
+
+[
+`Net : ₹${Number(booking.net_amount||0).toLocaleString()}`
+],
+
+[
+`GST : ₹${Number(booking.gst_amount||0).toLocaleString()}`
+],
+
+[
+`Gross : ₹${Number(booking.gross_amount||0).toLocaleString()}`
+],
+
+[
+`Paid : ₹${paid.toLocaleString()}`
+],
+
+[
+`Balance : ₹${balance.toLocaleString()}`
+],
+
+[
+`Status : ${statusText}`
+]
+
+]
+
+}
+);
+
+currentY =
+(doc as any)
+.lastAutoTable
+.finalY
++ 3;
+
+if(
+bookingPayments.length > 0
+){
+
+autoTable(
+doc,
+{
+startY:currentY,
+
+head:[
+[
+"Payment Date",
+"Mode",
+"Amount"
+]
+],
+
+body:
+
+bookingPayments.map(
+(payment:any)=>[
+
+payment.payment_date,
+
+payment.payment_mode,
+
+Number(
+payment.payment_amount || 0
+).toLocaleString()
+
+]
+)
+
+}
+);
+
+currentY =
+(doc as any)
+.lastAutoTable
+.finalY
++ 8;
+
+}
+
+}
+);
+
+doc.save(
+`BookingVerification-${property}.pdf`
+);
+
+};
+
 return(
 
 <div className="space-y-6">
@@ -490,6 +762,27 @@ rounded
 >
 
 Generate Report
+
+</button>
+
+<button
+
+onClick={
+exportPdf
+}
+
+className="
+bg-red-600
+text-white
+px-4
+py-2
+rounded
+ml-2
+"
+
+>
+
+Export PDF
 
 </button>
 
@@ -845,30 +1138,29 @@ statusText === "NO PAYMENT"
 </div>
 
 </div>
-<div className="mt-3">
+
+<div className="mt-3 text-sm">
 
 <b>
 Payment Details :
 </b>
-
-</div>
 
 {
 bookingPayments.length > 0
 ?
 
 bookingPayments.map(
-(payment:any)=>(
+(payment:any,index:number)=>(
 
 <div
-
 key={payment.id}
-
-className="
-ml-6
-text-sm
-"
-
+className={
+index === 0
+?
+"inline ml-2"
+:
+"ml-28"
+}
 >
 
 {
@@ -895,17 +1187,18 @@ payment.payment_amount || 0
 
 :
 
-<div className="
-ml-6
-text-sm
+<span className="
+ml-2
 text-red-500
 ">
 
 No Payments Recorded
 
-</div>
+</span>
 
 }
+
+</div>
 
 </div>
 
