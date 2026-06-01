@@ -355,72 +355,121 @@ doc.text(
 46
 );
 
-autoTable(
-doc,
-{
-startY:55,
+doc.text(
+"SUMMARY",
+14,
+58
+);
 
-head:[
-[
-"Metric",
-"Value"
-]
-],
+doc.text(
+`Total Bookings : ${reportSummary.bookings}`,
+14,
+66
+);
 
-body:[
+doc.text(
+`Paid Bookings : ${reportSummary.paidBookings}`,
+14,
+74
+);
 
-[
-"Total Bookings",
-reportSummary.bookings
-],
+doc.text(
+`Partial Bookings : ${reportSummary.partialBookings}`,
+14,
+82
+);
 
-[
-"Paid Bookings",
-reportSummary.paidBookings
-],
+doc.text(
+`No Payment Bookings : ${reportSummary.noPaymentBookings}`,
+14,
+90
+);
 
-[
-"Partial Bookings",
-reportSummary.partialBookings
-],
+doc.text(
+`Gross Revenue : ${reportSummary.gross.toLocaleString()}`,
+110,
+66
+);
 
-[
-"No Payment Bookings",
-reportSummary.noPaymentBookings
-],
+doc.text(
+`Total Paid : ${reportSummary.paid.toLocaleString()}`,
+110,
+74
+);
 
-[
-"Gross Revenue",
-reportSummary.gross.toLocaleString()
-],
+doc.text(
+`Balance : ${totalBalance.toLocaleString()}`,
+110,
+82
+);
 
-[
-"GST Collected",
-reportSummary.gst.toLocaleString()
-],
+let currentY = 105;
 
-[
-"Total Paid",
-reportSummary.paid.toLocaleString()
-],
 
-[
+
+doc.setFontSize(9);
+
+doc.text(
+"Invoice",
+14,
+currentY
+);
+
+doc.text(
+"Booking",
+48,
+currentY
+);
+
+doc.text(
+"Checkout",
+75,
+currentY
+);
+
+doc.text(
+"Gross",
+105,
+currentY
+);
+
+doc.text(
+"Paid",
+130,
+currentY
+);
+
+doc.text(
 "Balance",
-totalBalance.toLocaleString()
-]
+155,
+currentY
+);
 
-]
-
+doc.text(
+"Status",
+190,
+currentY,
+{
+align:"right"
 }
 );
 
-let currentY =
-(doc as any)
-.lastAutoTable
-.finalY
-+ 10;
+currentY += 6;
 
-reportData.forEach(
+doc.line(
+14,
+currentY,
+195,
+currentY
+);
+
+currentY += 6;
+
+doc.setFontSize(9);
+
+reportData
+
+.filter(
 (booking:any)=>{
 
 const bookingPayments =
@@ -431,12 +480,10 @@ booking.id
 const paid =
 bookingPayments.reduce(
 (sum,p)=>
-
 sum +
 Number(
 p.payment_amount || 0
 ),
-
 0
 );
 
@@ -454,127 +501,202 @@ let statusText =
 if(
 paid === 0
 ){
-
 statusText =
 "NO PAYMENT";
-
 }
 else if(
 balance === 0
 ){
-
 statusText =
 "PAID";
-
 }
 else if(
 paid > gross
 ){
-
 statusText =
 "OVERPAID";
+}
+
+if(
+status !== "All"
+&&
+statusText !== status.toUpperCase()
+){
+return false;
+}
+
+return true;
+
+})
+
+.forEach(
+(booking:any)=>{
+
+const bookingPayments =
+getBookingPayments(
+booking.id
+);
+
+const paid =
+bookingPayments.reduce(
+(sum,p)=>
+sum +
+Number(
+p.payment_amount || 0
+),
+0
+);
+
+const gross =
+Number(
+booking.gross_amount || 0
+);
+
+const balance =
+gross - paid;
+
+let statusText =
+"PARTIAL";
+
+if(
+paid === 0
+){
+statusText =
+"NO PAYMENT";
+}
+else if(
+balance === 0
+){
+statusText =
+"PAID";
+}
+else if(
+paid > gross
+){
+statusText =
+"OVERPAID";
+}
+
+if(
+currentY > 260
+){
+
+doc.addPage();
+
+currentY = 20;
 
 }
 
-autoTable(
-doc,
+doc.text(
+booking.invoice_number,
+14,
+currentY
+);
+
+doc.text(
+booking.booking_date || "",
+48,
+currentY
+);
+
+doc.text(
+booking.checkout_date || "",
+75,
+currentY
+);
+
+doc.text(
+gross.toLocaleString(),
+105,
+currentY
+);
+
+doc.text(
+paid.toLocaleString(),
+130,
+currentY
+);
+
+doc.text(
+balance.toLocaleString(),
+155,
+currentY
+);
+
+doc.text(
+statusText,
+185,
+currentY,
 {
-startY:currentY,
-
-head:[
-[
-booking.invoice_number
-]
-],
-
-body:[
-
-[
-`Booking Date : ${booking.booking_date}`
-],
-
-[
-`Checkout Date : ${booking.checkout_date}`
-],
-
-[
-`Net : ₹${Number(booking.net_amount||0).toLocaleString()}`
-],
-
-[
-`GST : ₹${Number(booking.gst_amount||0).toLocaleString()}`
-],
-
-[
-`Gross : ₹${Number(booking.gross_amount||0).toLocaleString()}`
-],
-
-[
-`Paid : ₹${paid.toLocaleString()}`
-],
-
-[
-`Balance : ₹${balance.toLocaleString()}`
-],
-
-[
-`Status : ${statusText}`
-]
-
-]
-
+align:"right"
 }
 );
 
-currentY =
-(doc as any)
-.lastAutoTable
-.finalY
-+ 3;
+currentY += 6;
 
 if(
 bookingPayments.length > 0
 ){
 
-autoTable(
-doc,
-{
-startY:currentY,
+doc.text(
+"Payments:",
+20,
+currentY
+);
 
-head:[
-[
-"Payment Date",
-"Mode",
-"Amount"
-]
-],
+currentY += 5;
 
-body:
+bookingPayments.forEach(
+(payment:any)=>{
 
-bookingPayments.map(
-(payment:any)=>[
+if(
+currentY > 280
+){
 
-payment.payment_date,
+doc.addPage();
 
-payment.payment_mode,
+currentY = 20;
 
-Number(
+}
+
+doc.text(
+
+`${payment.payment_date} | ${payment.payment_mode} | Rs.${Number(
 payment.payment_amount || 0
-).toLocaleString()
+).toLocaleString()}`,
 
-]
-)
+25,
+
+currentY
+
+);
+
+currentY += 5;
 
 }
 );
 
-currentY =
-(doc as any)
-.lastAutoTable
-.finalY
-+ 8;
+}
+else{
+
+doc.text(
+"No Payments Recorded",
+25,
+currentY
+);
+
+currentY += 5;
 
 }
+
+doc.line(
+14,
+currentY,
+195,
+currentY
+);
+
+currentY += 12;
 
 }
 );
@@ -582,7 +704,6 @@ currentY =
 doc.save(
 `BookingVerification-${property}.pdf`
 );
-
 };
 
 return(
