@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
+import * as XLSX from "xlsx";
+
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -706,6 +708,335 @@ doc.save(
 );
 };
 
+const exportExcel = () => {
+
+const excelData:any[] = [];
+
+reportData
+
+.filter(
+(booking:any)=>{
+
+const bookingPayments =
+getBookingPayments(
+booking.id
+);
+
+const paid =
+bookingPayments.reduce(
+(sum,p)=>
+sum +
+Number(
+p.payment_amount || 0
+),
+0
+);
+
+const gross =
+Number(
+booking.gross_amount || 0
+);
+
+const balance =
+gross - paid;
+
+let statusText =
+"PARTIAL";
+
+if(
+paid === 0
+){
+statusText =
+"NO PAYMENT";
+}
+else if(
+balance === 0
+){
+statusText =
+"PAID";
+}
+else if(
+paid > gross
+){
+statusText =
+"OVERPAID";
+}
+
+if(
+status !== "All"
+&&
+statusText !== status.toUpperCase()
+){
+return false;
+}
+
+return true;
+
+})
+
+.forEach(
+(booking:any)=>{
+
+const bookingPayments =
+getBookingPayments(
+booking.id
+);
+
+const paid =
+bookingPayments.reduce(
+(sum,p)=>
+sum +
+Number(
+p.payment_amount || 0
+),
+0
+);
+
+const gross =
+Number(
+booking.gross_amount || 0
+);
+
+const balance =
+gross - paid;
+
+let statusText =
+"PARTIAL";
+
+if(
+paid === 0
+){
+statusText =
+"NO PAYMENT";
+}
+else if(
+balance === 0
+){
+statusText =
+"PAID";
+}
+else if(
+paid > gross
+){
+statusText =
+"OVERPAID";
+}
+
+if(
+bookingPayments.length === 0
+){
+
+excelData.push({
+
+"Invoice No":
+booking.invoice_number,
+
+"Booking Date":
+booking.booking_date,
+
+"Checkout Date":
+booking.checkout_date,
+
+"Gross Amount":
+gross,
+
+"Paid Amount":
+paid,
+
+"Balance":
+balance,
+
+"Status":
+statusText,
+
+"Payment Date":
+"",
+
+"Payment Mode":
+"",
+
+"Payment Amount":
+""
+
+});
+
+}
+else{
+
+bookingPayments.forEach(
+(payment:any)=>{
+
+excelData.push({
+
+"Invoice No":
+booking.invoice_number,
+
+"Booking Date":
+booking.booking_date,
+
+"Checkout Date":
+booking.checkout_date,
+
+"Gross Amount":
+gross,
+
+"Paid Amount":
+paid,
+
+"Balance":
+balance,
+
+"Status":
+statusText,
+
+"Payment Date":
+payment.payment_date,
+
+"Payment Mode":
+payment.payment_mode,
+
+"Payment Amount":
+payment.payment_amount
+
+});
+
+});
+
+}
+
+});
+
+const worksheet =
+XLSX.utils.json_to_sheet(
+excelData
+);
+
+worksheet["!autofilter"] = {
+ref: "A1:J1"
+};
+
+worksheet["!cols"] = [
+
+{ wch: 18 }, // Invoice
+
+{ wch: 15 }, // Booking Date
+
+{ wch: 15 }, // Checkout Date
+
+{ wch: 15 }, // Gross
+
+{ wch: 15 }, // Paid
+
+{ wch: 15 }, // Balance
+
+{ wch: 15 }, // Status
+
+{ wch: 15 }, // Payment Date
+
+{ wch: 15 }, // Payment Mode
+
+{ wch: 18 }  // Payment Amount
+
+];
+
+const workbook =
+XLSX.utils.book_new();
+
+const summaryData = [
+
+{
+Metric:"Property",
+Value:property
+},
+
+{
+Metric:"From Date",
+Value:startDate
+},
+
+{
+Metric:"To Date",
+Value:endDate
+},
+
+{
+Metric:"Status",
+Value:status
+},
+
+{},
+
+{
+Metric:"Total Bookings",
+Value:reportSummary.bookings
+},
+
+{
+Metric:"Paid Bookings",
+Value:reportSummary.paidBookings
+},
+
+{
+Metric:"Partial Bookings",
+Value:reportSummary.partialBookings
+},
+
+{
+Metric:"No Payment Bookings",
+Value:reportSummary.noPaymentBookings
+},
+
+{},
+
+{
+Metric:"Gross Revenue",
+Value:reportSummary.gross
+},
+
+{
+Metric:"Total Paid",
+Value:reportSummary.paid
+},
+
+{
+Metric:"Balance",
+Value:totalBalance
+}
+
+];
+
+const summarySheet =
+XLSX.utils.json_to_sheet(
+summaryData
+);
+
+summarySheet["!cols"] = [
+
+{ wch: 25 },
+
+{ wch: 25 }
+
+];
+
+XLSX.utils.book_append_sheet(
+workbook,
+summarySheet,
+"Summary"
+);
+
+XLSX.utils.book_append_sheet(
+workbook,
+worksheet,
+"Booking Verification"
+);
+
+XLSX.writeFile(
+workbook,
+`BookingVerification-${property}.xlsx`
+);
+
+};
+
 return(
 
 <div className="space-y-6">
@@ -904,6 +1235,27 @@ ml-2
 >
 
 Export PDF
+
+</button>
+
+<button
+
+onClick={
+exportExcel
+}
+
+className="
+bg-green-600
+text-white
+px-4
+py-2
+rounded
+ml-2
+"
+
+>
+
+Export Excel
 
 </button>
 
