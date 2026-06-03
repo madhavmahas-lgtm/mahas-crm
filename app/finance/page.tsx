@@ -76,12 +76,16 @@ items:[
 {
 name:"Booking Verification",
 url:"/finance/reports/booking-verification"
+},
+
+{
+name:"Expense Verification",
+url:"/finance/reports/expense-verification"
 }
 
 ]
 
 }
-
 
 ];
 

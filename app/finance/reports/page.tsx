@@ -48,6 +48,24 @@ hover:bg-gray-100
 
 </Link>
 
+<Link
+
+href="/finance/reports/expense-verification"
+
+className="
+block
+border
+rounded
+p-3
+hover:bg-gray-100
+"
+
+>
+
+💰 Expense Verification
+
+</Link>
+
 </div>
 
 </div>
