@@ -92,11 +92,6 @@ reportData,
 setReportData
 ] = useState<any[]>([]);
 
-const [
-paymentsData,
-setPaymentsData
-] = useState<any[]>([]);
-
 useEffect(()=>{
 
 setRole(
@@ -211,23 +206,6 @@ setReportData(
 data || []
 );
 
-setPaymentsData([]);
-
-};
-
-const getBookingPayments =
-(
-bookingId:string
-)=>{
-
-return paymentsData.filter(
-(payment)=>
-
-payment.booking_id
-=== bookingId
-
-);
-
 };
 
 const reportSummary =
@@ -300,7 +278,6 @@ upiExpenses:0
 }
 );
 
-const totalBalance = 0;
 
 const exportPdf = ()=>{
 
@@ -348,43 +325,43 @@ doc.text(
 );
 
 doc.text(
-`Total Bookings : ${reportSummary.bookings}`,
+`Total Expenses : ${reportSummary.totalExpenses}`,
 14,
 66
 );
 
 doc.text(
-`Paid Bookings : ${reportSummary.paidBookings}`,
+`Complete Expenses : ${reportSummary.completeExpenses}`,
 14,
 74
 );
 
 doc.text(
-`Partial Bookings : ${reportSummary.partialBookings}`,
+`Missing Invoices : ${reportSummary.missingInvoices}`,
 14,
 82
 );
 
 doc.text(
-`No Payment Bookings : ${reportSummary.noPaymentBookings}`,
+`Missing GST : ${reportSummary.missingGST}`,
 14,
 90
 );
 
 doc.text(
-`Gross Revenue : ${reportSummary.gross.toLocaleString()}`,
+`Net Amount : Rs.${reportSummary.net.toLocaleString()}`,
 110,
 66
 );
 
 doc.text(
-`Total Paid : ${reportSummary.paid.toLocaleString()}`,
+`GST Amount : Rs.${reportSummary.gst.toLocaleString()}`,
 110,
 74
 );
 
 doc.text(
-`Balance : ${totalBalance.toLocaleString()}`,
+`Gross Amount : Rs.${reportSummary.gross.toLocaleString()}`,
 110,
 82
 );
@@ -396,19 +373,19 @@ let currentY = 105;
 doc.setFontSize(9);
 
 doc.text(
-"Invoice",
+"Date",
 14,
 currentY
 );
 
 doc.text(
-"Booking",
+"Category",
 48,
 currentY
 );
 
 doc.text(
-"Checkout",
+"Paid To",
 75,
 currentY
 );
@@ -420,24 +397,15 @@ currentY
 );
 
 doc.text(
-"Paid",
+"Mode",
 130,
 currentY
 );
 
 doc.text(
-"Balance",
+"Status",
 155,
 currentY
-);
-
-doc.text(
-"Status",
-190,
-currentY,
-{
-align:"right"
-}
 );
 
 currentY += 6;
@@ -458,49 +426,28 @@ reportData
 .filter(
 (booking:any)=>{
 
-const bookingPayments =
-getBookingPayments(
-booking.id
-);
-
-const paid =
-bookingPayments.reduce(
-(sum,p)=>
-sum +
-Number(
-p.payment_amount || 0
-),
-0
-);
-
-const gross =
-Number(
-booking.gross_amount || 0
-);
-
-const balance =
-gross - paid;
-
 let statusText =
-"PARTIAL";
+"COMPLETE";
 
 if(
-paid === 0
+!booking.supplier_invoice
+&&
+!booking.supplier_gst
 ){
 statusText =
-"NO PAYMENT";
+"INCOMPLETE";
 }
 else if(
-balance === 0
+!booking.supplier_invoice
 ){
 statusText =
-"PAID";
+"MISSING INVOICE";
 }
 else if(
-paid > gross
+!booking.supplier_gst
 ){
 statusText =
-"OVERPAID";
+"MISSING GST";
 }
 
 if(
@@ -518,49 +465,28 @@ return true;
 .forEach(
 (booking:any)=>{
 
-const bookingPayments =
-getBookingPayments(
-booking.id
-);
-
-const paid =
-bookingPayments.reduce(
-(sum,p)=>
-sum +
-Number(
-p.payment_amount || 0
-),
-0
-);
-
-const gross =
-Number(
-booking.gross_amount || 0
-);
-
-const balance =
-gross - paid;
-
 let statusText =
-"PARTIAL";
+"COMPLETE";
 
 if(
-paid === 0
+!booking.supplier_invoice
+&&
+!booking.supplier_gst
 ){
 statusText =
-"NO PAYMENT";
+"INCOMPLETE";
 }
 else if(
-balance === 0
+!booking.supplier_invoice
 ){
 statusText =
-"PAID";
+"MISSING INVOICE";
 }
 else if(
-paid > gross
+!booking.supplier_gst
 ){
 statusText =
-"OVERPAID";
+"MISSING GST";
 }
 
 if(
@@ -574,100 +500,71 @@ currentY = 20;
 }
 
 doc.text(
-booking.invoice_number,
+String(booking.date || ""),
 14,
 currentY
 );
 
 doc.text(
-booking.booking_date || "",
+String(booking.category || ""),
 48,
 currentY
 );
 
 doc.text(
-booking.checkout_date || "",
+String(booking.paid_to || ""),
 75,
 currentY
 );
 
 doc.text(
-gross.toLocaleString(),
+String(
+Number(
+booking.gross_amount || 0
+).toLocaleString()
+),
 105,
 currentY
 );
 
 doc.text(
-paid.toLocaleString(),
+String(
+booking.payment_mode || "-"
+),
 130,
 currentY
 );
 
 doc.text(
-balance.toLocaleString(),
+statusText,
 155,
 currentY
 );
 
-doc.text(
-statusText,
-185,
-currentY,
-{
-align:"right"
-}
-);
 
 currentY += 6;
 
 if(
-bookingPayments.length > 0
+booking.supplier_gst
 ){
 
 doc.text(
-"Payments:",
+`GST No : ${booking.supplier_gst}`,
 20,
 currentY
 );
 
 currentY += 5;
 
-bookingPayments.forEach(
-(payment:any)=>{
+}
 
 if(
-currentY > 280
+booking.notes
 ){
 
-doc.addPage();
-
-currentY = 20;
-
-}
-
 doc.text(
-
-`${payment.payment_date} | ${payment.payment_mode} | Rs.${Number(
-payment.payment_amount || 0
-).toLocaleString()}`,
-
-25,
-
-currentY
-
-);
-
-currentY += 5;
-
-}
-);
-
-}
-else{
-
-doc.text(
-"No Payments Recorded",
-25,
+`Notes : ${booking.notes}`,
+20,
 currentY
 );
 
@@ -682,13 +579,13 @@ currentY,
 currentY
 );
 
-currentY += 12;
+currentY += 6;
 
 }
 );
 
 doc.save(
-`BookingVerification-${property}.pdf`
+`ExpenseVerification-${property}.pdf`
 );
 };
 
@@ -701,49 +598,29 @@ reportData
 .filter(
 (booking:any)=>{
 
-const bookingPayments =
-getBookingPayments(
-booking.id
-);
-
-const paid =
-bookingPayments.reduce(
-(sum,p)=>
-sum +
-Number(
-p.payment_amount || 0
-),
-0
-);
-
-const gross =
-Number(
-booking.gross_amount || 0
-);
-
-const balance =
-gross - paid;
 
 let statusText =
-"PARTIAL";
+"COMPLETE";
 
 if(
-paid === 0
+!booking.supplier_invoice
+&&
+!booking.supplier_gst
 ){
 statusText =
-"NO PAYMENT";
+"INCOMPLETE";
 }
 else if(
-balance === 0
+!booking.supplier_invoice
 ){
 statusText =
-"PAID";
+"MISSING INVOICE";
 }
 else if(
-paid > gross
+!booking.supplier_gst
 ){
 statusText =
-"OVERPAID";
+"MISSING GST";
 }
 
 if(
@@ -759,134 +636,71 @@ return true;
 })
 
 .forEach(
-(booking:any)=>{
-
-const bookingPayments =
-getBookingPayments(
-booking.id
-);
-
-const paid =
-bookingPayments.reduce(
-(sum,p)=>
-sum +
-Number(
-p.payment_amount || 0
-),
-0
-);
-
-const gross =
-Number(
-booking.gross_amount || 0
-);
-
-const balance =
-gross - paid;
+(expense:any)=>{
 
 let statusText =
-"PARTIAL";
+"COMPLETE";
 
 if(
-paid === 0
+!expense.supplier_invoice
+&&
+!expense.supplier_gst
 ){
 statusText =
-"NO PAYMENT";
+"INCOMPLETE";
 }
 else if(
-balance === 0
+!expense.supplier_invoice
 ){
 statusText =
-"PAID";
+"MISSING INVOICE";
 }
 else if(
-paid > gross
+!expense.supplier_gst
 ){
 statusText =
-"OVERPAID";
+"MISSING GST";
 }
-
-if(
-bookingPayments.length === 0
-){
 
 excelData.push({
 
-"Invoice No":
-booking.invoice_number,
+"Date":
+expense.date,
 
-"Booking Date":
-booking.booking_date,
+"Property":
+expense.property,
 
-"Checkout Date":
-booking.checkout_date,
+"Category":
+expense.category,
+
+"Paid To":
+expense.paid_to,
+
+"Payment Mode":
+expense.payment_mode,
+
+"Net Amount":
+expense.net_amount,
+
+"GST Amount":
+expense.gst_amount,
 
 "Gross Amount":
-gross,
+expense.gross_amount,
 
-"Paid Amount":
-paid,
+"Invoice No":
+expense.supplier_invoice,
 
-"Balance":
-balance,
+"GST No":
+expense.supplier_gst,
 
 "Status":
 statusText,
 
-"Payment Date":
-"",
-
-"Payment Mode":
-"",
-
-"Payment Amount":
-""
+"Notes":
+expense.notes
 
 });
-
-}
-else{
-
-bookingPayments.forEach(
-(payment:any)=>{
-
-excelData.push({
-
-"Invoice No":
-booking.invoice_number,
-
-"Booking Date":
-booking.booking_date,
-
-"Checkout Date":
-booking.checkout_date,
-
-"Gross Amount":
-gross,
-
-"Paid Amount":
-paid,
-
-"Balance":
-balance,
-
-"Status":
-statusText,
-
-"Payment Date":
-payment.payment_date,
-
-"Payment Mode":
-payment.payment_mode,
-
-"Payment Amount":
-payment.payment_amount
-
-});
-
-});
-
-}
 
 });
 
@@ -896,30 +710,23 @@ excelData
 );
 
 worksheet["!autofilter"] = {
-ref: "A1:J1"
+ref: "A1:L1"
 };
 
 worksheet["!cols"] = [
 
-{ wch: 18 }, // Invoice
-
-{ wch: 15 }, // Booking Date
-
-{ wch: 15 }, // Checkout Date
-
+{ wch: 12 }, // Date
+{ wch: 15 }, // Property
+{ wch: 20 }, // Category
+{ wch: 25 }, // Paid To
+{ wch: 15 }, // Mode
+{ wch: 15 }, // Net
+{ wch: 15 }, // GST
 { wch: 15 }, // Gross
-
-{ wch: 15 }, // Paid
-
-{ wch: 15 }, // Balance
-
-{ wch: 15 }, // Status
-
-{ wch: 15 }, // Payment Date
-
-{ wch: 15 }, // Payment Mode
-
-{ wch: 18 }  // Payment Amount
+{ wch: 20 }, // Invoice
+{ wch: 20 }, // GST No
+{ wch: 18 }, // Status
+{ wch: 40 }  // Notes
 
 ];
 
@@ -951,40 +758,40 @@ Value:status
 {},
 
 {
-Metric:"Total Bookings",
-Value:reportSummary.bookings
+Metric:"Total Expenses",
+Value:reportSummary.totalExpenses
 },
 
 {
-Metric:"Paid Bookings",
-Value:reportSummary.paidBookings
+Metric:"Complete Expenses",
+Value:reportSummary.completeExpenses
 },
 
 {
-Metric:"Partial Bookings",
-Value:reportSummary.partialBookings
+Metric:"Missing Invoices",
+Value:reportSummary.missingInvoices
 },
 
 {
-Metric:"No Payment Bookings",
-Value:reportSummary.noPaymentBookings
+Metric:"Missing GST",
+Value:reportSummary.missingGST
 },
 
 {},
 
 {
-Metric:"Gross Revenue",
+Metric:"Net Amount",
+Value:reportSummary.net
+},
+
+{
+Metric:"GST Amount",
+Value:reportSummary.gst
+},
+
+{
+Metric:"Gross Amount",
 Value:reportSummary.gross
-},
-
-{
-Metric:"Total Paid",
-Value:reportSummary.paid
-},
-
-{
-Metric:"Balance",
-Value:totalBalance
 }
 
 ];
@@ -1011,12 +818,12 @@ summarySheet,
 XLSX.utils.book_append_sheet(
 workbook,
 worksheet,
-"Booking Verification"
+"Expense Verification"
 );
 
 XLSX.writeFile(
 workbook,
-`BookingVerification-${property}.xlsx`
+`ExpenseVerification-${property}.xlsx`
 );
 
 };
