@@ -248,13 +248,41 @@ p.payment_amount || 0
 0
 );
 
+const settledAmount =
+
+paid
+
++
+
+Number(
+booking.commission_amount || 0
+)
+
++
+
+Number(
+booking.gst_on_commission || 0
+)
+
++
+
+Number(
+booking.tds || 0
+)
+
++
+
+Number(
+booking.tcs || 0
+);
+
 const gross =
 Number(
 booking.gross_amount || 0
 );
 
 const balance =
-gross - paid;
+gross - settledAmount;
 
 if(
 paid === 0
@@ -315,8 +343,64 @@ overpaidBookings:0
 );
 
 const totalBalance =
-reportSummary.gross -
-reportSummary.paid;
+reportData.reduce(
+(sum,booking)=>{
+
+const bookingPayments =
+getBookingPayments(
+booking.id
+);
+
+const paid =
+bookingPayments.reduce(
+(total,p)=>
+total +
+Number(
+p.payment_amount || 0
+),
+0
+);
+
+const settledAmount =
+
+paid
+
++
+
+Number(
+booking.commission_amount || 0
+)
+
++
+
+Number(
+booking.gst_on_commission || 0
+)
+
++
+
+Number(
+booking.tds || 0
+)
+
++
+
+Number(
+booking.tcs || 0
+);
+
+const gross =
+Number(
+booking.gross_amount || 0
+);
+
+return sum + (
+gross - settledAmount
+);
+
+},
+0
+);
 
 const exportPdf = ()=>{
 
@@ -494,8 +578,36 @@ Number(
 booking.gross_amount || 0
 );
 
+const settledAmount =
+
+paid
+
++
+
+Number(
+booking.commission_amount || 0
+)
+
++
+
+Number(
+booking.gst_on_commission || 0
+)
+
++
+
+Number(
+booking.tds || 0
+)
+
++
+
+Number(
+booking.tcs || 0
+);
+
 const balance =
-gross - paid;
+gross - settledAmount;
 
 let statusText =
 "PARTIAL";
@@ -542,11 +654,41 @@ booking.id
 const paid =
 bookingPayments.reduce(
 (sum,p)=>
+
 sum +
 Number(
 p.payment_amount || 0
 ),
+
 0
+);
+
+const settledAmount =
+
+paid
+
++
+
+Number(
+booking.commission_amount || 0
+)
+
++
+
+Number(
+booking.gst_on_commission || 0
+)
+
++
+
+Number(
+booking.tds || 0
+)
+
++
+
+Number(
+booking.tcs || 0
 );
 
 const gross =
@@ -555,7 +697,7 @@ booking.gross_amount || 0
 );
 
 const balance =
-gross - paid;
+gross - settledAmount;
 
 let statusText =
 "PARTIAL";
@@ -725,11 +867,41 @@ booking.id
 const paid =
 bookingPayments.reduce(
 (sum,p)=>
+
 sum +
 Number(
 p.payment_amount || 0
 ),
+
 0
+);
+
+const settledAmount =
+
+paid
+
++
+
+Number(
+booking.commission_amount || 0
+)
+
++
+
+Number(
+booking.gst_on_commission || 0
+)
+
++
+
+Number(
+booking.tds || 0
+)
+
++
+
+Number(
+booking.tcs || 0
 );
 
 const gross =
@@ -738,7 +910,7 @@ booking.gross_amount || 0
 );
 
 const balance =
-gross - paid;
+gross - settledAmount;
 
 let statusText =
 "PARTIAL";
@@ -785,11 +957,41 @@ booking.id
 const paid =
 bookingPayments.reduce(
 (sum,p)=>
+
 sum +
 Number(
 p.payment_amount || 0
 ),
+
 0
+);
+
+const settledAmount =
+
+paid
+
++
+
+Number(
+booking.commission_amount || 0
+)
+
++
+
+Number(
+booking.gst_on_commission || 0
+)
+
++
+
+Number(
+booking.tds || 0
+)
+
++
+
+Number(
+booking.tcs || 0
 );
 
 const gross =
@@ -798,7 +1000,7 @@ booking.gross_amount || 0
 );
 
 const balance =
-gross - paid;
+gross - settledAmount;
 
 let statusText =
 "PARTIAL";
@@ -1467,13 +1669,41 @@ p.payment_amount || 0
 0
 );
 
+const settledAmount =
+
+paid
+
++
+
+Number(
+booking.commission_amount || 0
+)
+
++
+
+Number(
+booking.gst_on_commission || 0
+)
+
++
+
+Number(
+booking.tds || 0
+)
+
++
+
+Number(
+booking.tcs || 0
+);
+
 const gross =
 Number(
 booking.gross_amount || 0
 );
 
 const balance =
-gross - paid;
+gross - settledAmount;
 
 let statusText =
 "PARTIAL";
