@@ -688,6 +688,12 @@ expense.gst_amount,
 "Gross Amount":
 expense.gross_amount,
 
+"Elite Share":
+expense.elite_share,
+
+"Vrindavan Share":
+expense.vrindavan_share,
+
 "Invoice No":
 expense.supplier_invoice,
 
@@ -710,7 +716,7 @@ excelData
 );
 
 worksheet["!autofilter"] = {
-ref: "A1:L1"
+ref: "A1:N1"
 };
 
 worksheet["!cols"] = [
@@ -723,6 +729,10 @@ worksheet["!cols"] = [
 { wch: 15 }, // Net
 { wch: 15 }, // GST
 { wch: 15 }, // Gross
+
+{ wch: 15 }, // Elite Share
+{ wch: 18 }, // Vrindavan Share
+
 { wch: 20 }, // Invoice
 { wch: 20 }, // GST No
 { wch: 18 }, // Status
@@ -1213,7 +1223,7 @@ reportSummary.gross
 
 <div className="
 grid
-grid-cols-9
+grid-cols-11
 gap-2
 font-bold
 border-b
@@ -1228,6 +1238,8 @@ text-sm
 <div>Net</div>
 <div>GST</div>
 <div>Gross</div>
+<div>Elite Share</div>
+<div>Vrindavan Share</div>
 <div>Invoice</div>
 <div>GST No</div>
 <div>Status</div>
@@ -1294,7 +1306,7 @@ bg-white
 
 <div className="
 grid
-grid-cols-9
+grid-cols-11
 gap-2
 text-sm
 mt-2
@@ -1328,6 +1340,22 @@ booking.gst_amount || 0
 ₹{Number(
 booking.gross_amount || 0
 ).toLocaleString()}
+</div>
+
+<div>
+₹{
+Number(
+booking.elite_share || 0
+).toLocaleString()
+}
+</div>
+
+<div>
+₹{
+Number(
+booking.vrindavan_share || 0
+).toLocaleString()
+}
 </div>
 
 <div>
