@@ -141,7 +141,9 @@ gross_amount,
 net_amount,
 date,
 payment_mode,
-category
+category,
+elite_share,
+vrindavan_share
 `
 )
 .gte(
@@ -354,14 +356,7 @@ e.net_amount
 0
 );
 
-let finalAmt =
-amt;
-
-if(
-e.property
-===
-"Common"
-){
+let finalAmt = amt;
 
 if(
 propertyFilter
@@ -370,7 +365,9 @@ propertyFilter
 ){
 
 finalAmt =
-amt / 3;
+Number(
+e.elite_share || 0
+);
 
 }
 
@@ -381,14 +378,12 @@ propertyFilter
 ){
 
 finalAmt =
-(
-amt * 2
-)
-/3;
+Number(
+e.vrindavan_share || 0
+);
 
 }
 
-}
 
 expense += finalAmt;
 

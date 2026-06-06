@@ -93,38 +93,30 @@ e.net_amount
 0
 );
 
+const eliteShare =
+Number(
+e.elite_share || 0
+);
+
+const vrindavanShare =
+Number(
+e.vrindavan_share || 0
+);
+
 map[cat].all += amt;
 
-if(
-e.property ===
-"Mahas Elite"
-){
+map[cat].elite +=
+eliteShare;
 
-map[cat]
-.elite += amt;
-
-}
-
-if(
-e.property ===
-"Mahas Vrindavan"
-){
-
-map[cat]
-.vrindavan += amt;
-
-}
+map[cat].vrindavan +=
+vrindavanShare;
 
 if(
 e.property ===
 "Common"
 ){
-
-map[cat]
-.common += amt;
-
+  map[cat].common += amt;
 }
-
 }
 );
 

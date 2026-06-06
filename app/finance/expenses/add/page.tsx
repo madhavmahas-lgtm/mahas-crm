@@ -37,11 +37,115 @@ export default function AddExpense() {
   supplier_invoice: "",
   supplier_gst: "",
   notes: "",
+  elite_share: "",
+  vrindavan_share: "",
+
 });
 
-  const handleChange = (e: any) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  const handleChange = (e:any) => {
+
+const {
+name,
+value
+} = e.target;
+
+let updatedForm = {
+
+...form,
+
+[name]: value
+
+};
+
+const gross =
+
+Number(
+name === "net_amount"
+? value
+: updatedForm.net_amount
+|| 0
+)
+
++
+
+Number(
+name === "gst_amount"
+? value
+: updatedForm.gst_amount
+|| 0
+);
+
+if(
+updatedForm.property
+===
+"Mahas Elite"
+){
+
+updatedForm.elite_share =
+gross.toString();
+
+updatedForm.vrindavan_share =
+"0";
+
+}
+
+else if(
+updatedForm.property
+===
+"Mahas Vrindavan"
+){
+
+updatedForm.elite_share =
+"0";
+
+updatedForm.vrindavan_share =
+gross.toString();
+
+}
+
+else if(
+updatedForm.property
+===
+"Common"
+){
+
+if(
+name === "property"
+||
+
+name === "net_amount"
+||
+
+name === "gst_amount"
+){
+
+const elite =
+
+(
+gross / 3
+)
+.toFixed(2);
+
+updatedForm.elite_share =
+elite;
+
+updatedForm.vrindavan_share =
+(
+gross
+-
+Number(elite)
+)
+.toFixed(2);
+
+}
+
+}
+
+setForm(
+updatedForm
+);
+
+};
 
   const fetchExpense = async () => {
     const { data, error } = await supabase
@@ -92,6 +196,8 @@ return;
         supplier_invoice: data.supplier_invoice || "",
         supplier_gst: data.supplier_gst || "",
         notes: data.notes || "",
+        elite_share: data.elite_share?.toString() || "",
+        vrindavan_share: data.vrindavan_share?.toString() || "",
       });
     }
   };
@@ -255,6 +361,51 @@ userProperty
       return;
     }
 
+const grossAmount =
+
+Number(
+form.net_amount || 0
+)
+
++
+
+Number(
+form.gst_amount || 0
+);
+
+if(
+form.property === "Common"
+){
+
+const totalAllocated =
+
+Number(
+form.elite_share || 0
+)
+
++
+
+Number(
+form.vrindavan_share || 0
+);
+
+if(
+Math.abs(
+grossAmount -
+totalAllocated
+) > 0.01
+){
+
+alert(
+"Allocation mismatch. Elite Share + Vrindavan Share must equal Gross Amount."
+);
+
+return;
+
+}
+
+}
+
 const payload = {
 
 date:
@@ -298,8 +449,17 @@ supplier_gst:
 form.supplier_gst,
 
 notes:
-form.notes
+form.notes,
 
+elite_share:
+Number(
+form.elite_share || 0
+),
+
+vrindavan_share:
+Number(
+form.vrindavan_share || 0
+)
 };
 
     let error;
@@ -582,6 +742,30 @@ Debit Card
        readOnly
        className="input bg-gray-100"
       />
+
+{
+form.property === "Common"
+&&
+<>
+
+<input
+name="elite_share"
+value={form.elite_share}
+placeholder="Elite Share"
+onChange={handleChange}
+className="input"
+/>
+
+<input
+name="vrindavan_share"
+value={form.vrindavan_share}
+placeholder="Vrindavan Share"
+onChange={handleChange}
+className="input"
+/>
+
+</>
+}
 
       {/* EXTRA */}
       <input
