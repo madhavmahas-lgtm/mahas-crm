@@ -73,6 +73,8 @@ profit:0,
 
 expenses:0,
 
+otaCharges:0,
+
 paymentSummary:{
 
 bank:0,
@@ -109,7 +111,10 @@ property,
 gross_amount,
 checkout_date,
 source_type,
-commission_amount
+commission_amount,
+gst_on_commission,
+tds,
+tcs
 `
 )
 .gte(
@@ -151,6 +156,8 @@ toDate
 let revenue = 0;
 
 let expense = 0;
+
+let otaCharges = 0;
 
 let paymentSummary = {
 
@@ -240,11 +247,46 @@ b.commission_amount
 ||0
 );
 
+otaCharges +=
+
+Number(
+b.commission_amount || 0
+)
++
+Number(
+b.gst_on_commission || 0
+);
+
+const otaAdjustments =
+
+Number(
+b.commission_amount || 0
+)
+
++
+
+Number(
+b.gst_on_commission || 0
+)
+
++
+
+Number(
+b.tds || 0
+)
+
++
+
+Number(
+b.tcs || 0
+);
+
 sourceSummary[
 src
 ].outstanding +=
-gross;
-
+(
+gross - otaAdjustments
+);
 }
 );
 
@@ -489,14 +531,17 @@ setData({
 
 revenue,
 
-expenses:
-expense,
+otaCharges,
+
+expenses: expense,
 
 profit:
+
 revenue
 -
+otaCharges
+-
 expense,
-
 paymentSummary,
 
 categorySummary,
@@ -607,7 +652,7 @@ className="
 input
 "
 />
-======
+
 {
 !(
 role === "director"
@@ -664,7 +709,7 @@ bg-white
 <h3 className="
 font-bold
 ">
-Revenue
+Gross Revenue
 </h3>
 
 <p>
@@ -689,7 +734,32 @@ bg-white
 <h3 className="
 font-bold
 ">
-Profit
+OTA Charges
+</h3>
+
+<p>
+
+₹{
+fmt(
+data.otaCharges
+)
+}
+
+</p>
+
+</div>
+
+<div className="
+border
+rounded
+p-4
+bg-white
+">
+
+<h3 className="
+font-bold
+">
+Net Profit
 </h3>
 
 <p>
@@ -703,6 +773,32 @@ data.profit
 </p>
 
 </div>
+
+<div className="
+border
+rounded
+p-4
+bg-white
+">
+
+<h3 className="
+font-bold
+">
+Expenses
+</h3>
+
+<p>
+
+₹{
+fmt(
+data.expenses
+)
+}
+
+</p>
+
+</div>
+
 
 <div className="
 border
@@ -900,6 +996,42 @@ v.outstanding
 )
 }
 </p>
+
+<p>
+
+Settlement % :
+
+{
+v.gross > 0
+
+?
+
+(
+(
+(
+v.gross
+-
+v.outstanding
+)
+
+/
+
+v.gross
+)
+
+*
+100
+)
+.toFixed(1)
+
+:
+
+0
+
+}%
+
+</p>
+
 
 </div>
 
