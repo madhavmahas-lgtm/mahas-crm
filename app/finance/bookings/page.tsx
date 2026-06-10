@@ -85,16 +85,18 @@ if (
 }
     // PROPERTY FILTER
     if(
-    userProperty
-    ){
+userProperty
+&&
+userProperty !== "All"
+){
 
-    query =
-    query.eq(
-    "property",
-    userProperty
-    );
+query =
+query.eq(
+"property",
+userProperty
+);
 
-    }
+}
 
     else if(
     propertyFilter
@@ -451,9 +453,7 @@ sessionStorage.getItem(
   useEffect(()=>{
 
 if(
-role !== "admin"
-&&
-!userProperty
+!role
 ){
 
 return;
@@ -997,15 +997,22 @@ v.outstanding
       <select
 
       value={
+      userProperty !== "All"
+      ?
       userProperty
-      ||
+      :
       propertyFilter
       }
+
         onChange={(e)=>{
 
         if(
         !userProperty
-        ){
+	||
+	userProperty === "All"
+	)
+
+	{
 
         setPropertyFilter(
         e.target.value
@@ -1019,20 +1026,26 @@ v.outstanding
       >
 
         {
-        !userProperty
+	(
+	!userProperty
+	||
+	userProperty === "All"
+	)
+	&&
 
-        &&
-
-        <option value="">
-        All Properties
-        </option>
-
-        }
+	<option value="">
+	All Properties
+	</option>
+	}
 
         {
-        !userProperty
-        &&
-        <>
+	(
+	!userProperty
+	||
+	userProperty === "All"
+	)
+	&&
+	<>
 
         <option>
         Mahas Elite

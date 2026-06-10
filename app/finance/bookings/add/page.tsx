@@ -59,9 +59,11 @@ role !== "admin"
 &&
 userProperty
 &&
-data.property
-!== userProperty
-){
+userProperty !== "All"
+&&
+data.property !== userProperty
+)
+{
 
 alert(
 "Access denied"
