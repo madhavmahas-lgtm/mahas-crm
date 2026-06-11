@@ -615,383 +615,6 @@ rounded
 
     </div>
 
-<div
-className="
-border
-rounded-lg
-p-3
-bg-white
-shadow-sm
-space-y-3
-"
->
-
-<p className="
-font-bold
-text-lg
-text-blue-700
-border-b
-pb-2
-mb-2
-">
-
-{
-propertyFilter
-?
-
-propertyFilter
-
-:
-
-"All Properties"
-
-}
-
-</p>
-
-<div
-className="
-grid
-grid-cols-2
-md:grid-cols-4
-gap-3
-"
->
-
-<div>
-<p className="text-gray-500 text-sm">
-Bookings
-</p>
-
-<p className="font-bold text-green-700">
-₹{
-summary.grossAmount
-.toLocaleString(
-"en-IN"
-)
-}
-</p>
-</div>
-
-<div>
-<p className="text-gray-500 text-sm">
-Commission
-</p>
-
-<p>
-₹{
-summary.commission
-.toLocaleString(
-"en-IN"
-)
-}
-</p>
-</div>
-
-<div>
-<p className="text-gray-500 text-sm">
-GST Comm
-</p>
-
-<p>
-₹{
-summary.gstCommission
-.toLocaleString(
-"en-IN"
-)
-}
-</p>
-</div>
-
-<div>
-<p className="text-gray-500 text-sm">
-TDS
-</p>
-
-<p>
-₹{
-summary.tds
-.toLocaleString(
-"en-IN"
-)
-}
-</p>
-</div>
-
-<div>
-<p className="text-gray-500 text-sm">
-TCS
-</p>
-
-<p>
-₹{
-summary.tcs
-.toLocaleString(
-"en-IN"
-)
-}
-</p>
-</div>
-
-<div>
-<p className="text-gray-500 text-sm">
-Card Charges
-</p>
-
-<p>
-₹{
-summary.cardCharges
-.toLocaleString(
-"en-IN"
-)
-}
-</p>
-</div>
-
-<div>
-<p className="text-gray-500 text-sm">
-Collected
-</p>
-
-<p className="font-bold text-green-700">
-₹{
-summary.collected
-.toLocaleString(
-"en-IN"
-)
-}
-</p>
-</div>
-
-<div>
-<p className="text-gray-500 text-sm">
-Outstanding
-</p>
-
-<p className="font-bold text-red-600">
-₹{
-summary.outstanding
-.toLocaleString(
-"en-IN"
-)
-}
-</p>
-</div>
-
-</div>
-
-</div>
-
-<div
-className="
-space-y-3
-"
->
-
-{
-Object.entries(
-sourceSummary
-).map(
-([source,
-v]:any)=>(
-
-
-<div
-key={source}
-className="
-grid
-grid-cols-2
-md:grid-cols-4
-gap-3
-border
-rounded-lg
-p-3
-bg-white
-shadow-sm
-"
->
-
-<div className="
-col-span-2
-md:col-span-4
-">
-
-<p className="
-font-bold
-text-lg
-text-blue-700
-border-b
-pb-2
-mb-2
-">
-{source}
-</p>
-
-</div>
-
-<div>
-
-<p className="text-gray-500 text-sm">
-Bookings
-</p>
-
-<p className="
-font-bold
-text-green-700
-">
-
-₹{
-v.bookings
-.toLocaleString(
-"en-IN"
-)
-}
-
-</p>
-
-</div>
-
-<div>
-
-<p className="text-gray-500 text-sm">
-Commission
-</p>
-
-<p>
-
-₹{
-v.commission
-.toLocaleString(
-"en-IN"
-)
-}
-
-</p>
-
-</div>
-
-<div>
-
-<p className="text-gray-500 text-sm">
-GST Comm
-</p>
-
-<p>
-
-₹{
-(v.gstComm || 0)
-.toLocaleString(
-"en-IN"
-)
-}
-
-</p>
-
-</div>
-
-<div>
-
-<p className="text-gray-500 text-sm">
-TDS
-</p>
-
-<p>
-
-₹{
-v.tds
-.toLocaleString(
-"en-IN"
-)
-}
-
-</p>
-
-</div>
-
-<div>
-
-<p className="text-gray-500 text-sm">
-TCS
-</p>
-
-<p>
-
-₹{
-v.tcs
-.toLocaleString(
-"en-IN"
-)
-}
-
-</p>
-
-</div>
-
-<div>
-
-<p className="text-gray-500 text-sm">
-Card Charges
-</p>
-
-<p>
-
-₹0
-
-</p>
-
-</div>
-
-<div>
-
-<p className="text-gray-500 text-sm">
-Collected
-</p>
-
-<p className="
-font-bold
-text-green-700
-">
-
-₹{
-(v.collected || 0)
-.toLocaleString(
-"en-IN"
-)
-}
-
-</p>
-
-</div>
-
-<div>
-
-<p className="text-gray-500 text-sm">
-Outstanding
-</p>
-
-<p className="
-font-bold
-text-red-600
-">
-
-₹{
-v.outstanding
-.toLocaleString(
-"en-IN"
-)
-}
-
-</p>
-
-</div>
-
-</div>
-
-))
-}
-
-</div>
-
     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
 
       <select
@@ -1147,6 +770,147 @@ v.outstanding
       />
 
     </div>
+
+<h3 className="font-bold text-lg mt-4">
+Booking Summary
+</h3>
+<div className="overflow-x-auto border rounded-lg bg-white">
+
+<table className="w-full text-sm">
+
+<thead>
+
+<tr className="bg-gray-100">
+
+<th className="p-2 text-left">
+Source
+</th>
+
+<th className="p-2 text-right">
+Bookings
+</th>
+
+<th className="p-2 text-right">
+Comm
+</th>
+
+<th className="p-2 text-right">
+GST
+</th>
+
+<th className="p-2 text-right">
+TDS
+</th>
+
+<th className="p-2 text-right">
+TCS
+</th>
+
+<th className="p-2 text-right">
+Collected
+</th>
+
+<th className="p-2 text-right">
+Outstanding
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr className="border-t font-bold bg-blue-50">
+
+<td className="p-2">
+TOTAL
+</td>
+
+<td className="p-2 text-right">
+₹{summary.grossAmount.toLocaleString("en-IN")}
+</td>
+
+<td className="p-2 text-right">
+₹{summary.commission.toLocaleString("en-IN")}
+</td>
+
+<td className="p-2 text-right">
+₹{summary.gstCommission.toLocaleString("en-IN")}
+</td>
+
+<td className="p-2 text-right">
+₹{summary.tds.toLocaleString("en-IN")}
+</td>
+
+<td className="p-2 text-right">
+₹{summary.tcs.toLocaleString("en-IN")}
+</td>
+
+<td className="p-2 text-right">
+₹{summary.collected.toLocaleString("en-IN")}
+</td>
+
+<td className="p-2 text-right text-red-600">
+₹{summary.outstanding.toLocaleString("en-IN")}
+</td>
+
+</tr>
+
+{
+Object.entries(sourceSummary)
+.map(
+([source,v]:any)=>(
+
+<tr
+key={source}
+className="border-t"
+>
+
+<td className="p-2">
+{source}
+</td>
+
+<td className="p-2 text-right">
+₹{v.bookings.toLocaleString("en-IN")}
+</td>
+
+<td className="p-2 text-right">
+₹{v.commission.toLocaleString("en-IN")}
+</td>
+
+<td className="p-2 text-right">
+₹{(v.gstComm || 0).toLocaleString("en-IN")}
+</td>
+
+<td className="p-2 text-right">
+₹{v.tds.toLocaleString("en-IN")}
+</td>
+
+<td className="p-2 text-right">
+₹{v.tcs.toLocaleString("en-IN")}
+</td>
+
+<td className="p-2 text-right">
+₹{(v.collected || 0).toLocaleString("en-IN")}
+</td>
+
+<td className="p-2 text-right text-red-600">
+₹{v.outstanding.toLocaleString("en-IN")}
+</td>
+
+</tr>
+
+))
+}
+</tbody>
+
+</table>
+
+</div>
+
+<h3 className="font-bold text-lg mt-4">
+Bookings
+</h3>
 
       {bookings.map((b) => {
 
