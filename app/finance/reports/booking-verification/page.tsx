@@ -1782,9 +1782,19 @@ mt-2
 </div>
 
 <div>
-₹{Number(
-booking.net_amount || 0
-).toLocaleString()}
+₹{
+(
+Number(booking.gross_amount || 0)
+-
+Number(booking.gst_amount || 0)
+).toLocaleString(
+"en-IN",
+{
+minimumFractionDigits:2,
+maximumFractionDigits:2
+}
+)
+}
 </div>
 
 <div>
