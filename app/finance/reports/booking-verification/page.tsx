@@ -1002,6 +1002,17 @@ booking.gross_amount || 0
 const balance =
 gross - settledAmount;
 
+const accountingNet =
+gross -
+Number(
+booking.gst_amount || 0
+);
+
+const gst =
+Number(
+booking.gst_amount || 0
+);
+
 let statusText =
 "PARTIAL";
 
@@ -1038,6 +1049,12 @@ booking.booking_date,
 
 "Checkout Date":
 booking.checkout_date,
+
+"Net Amount":
+accountingNet,
+
+"GST Amount":
+gst,
 
 "Gross Amount":
 gross,
@@ -1079,6 +1096,13 @@ booking.booking_date,
 "Checkout Date":
 booking.checkout_date,
 
+
+"Net Amount":
+accountingNet,
+
+"GST Amount":
+gst,
+
 "Gross Amount":
 gross,
 
@@ -1114,7 +1138,7 @@ excelData
 );
 
 worksheet["!autofilter"] = {
-ref: "A1:J1"
+ref: "A1:L1"
 };
 
 worksheet["!cols"] = [
@@ -1124,6 +1148,10 @@ worksheet["!cols"] = [
 { wch: 15 }, // Booking Date
 
 { wch: 15 }, // Checkout Date
+
+{ wch: 15 }, // Net Amount
+
+{ wch: 15 }, // GST Amount
 
 { wch: 15 }, // Gross
 
