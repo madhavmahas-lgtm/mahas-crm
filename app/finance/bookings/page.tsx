@@ -245,7 +245,7 @@ b.gross_amount || 0
 
 netAmount +=
 Number(
-b.net_amount || 0
+b.settlement_amount || 0
 );
 
 commission +=
@@ -369,7 +369,7 @@ b.tcs || 0
 sourceTotals[src]
 .net +=
 Number(
-b.net_amount || 0
+b.settlement_amount || 0
 );
 
 });
@@ -915,16 +915,47 @@ Bookings
       {bookings.map((b) => {
 
       const collected =
-      paymentTotals[
-      b.id
-      ] || 0;
+paymentTotals[
+b.id
+] || 0;
 
-      const pending =
-      Number(
-      b.net_amount || 0
-      )
-      -
-      collected;
+const otaDeductions =
+
+Number(
+b.commission_amount || 0
+)
+
++
+
+Number(
+b.gst_on_commission || 0
+)
+
++
+
+Number(
+b.tds || 0
+)
+
++
+
+Number(
+b.tcs || 0
+);
+
+const pending =
+
+Number(
+b.gross_amount || 0
+)
+
+-
+
+collected
+
+-
+
+otaDeductions;
 
       const status =
       pending <= 0
@@ -1056,7 +1087,7 @@ year:"numeric"
 className="
 grid
 grid-cols-2
-md:grid-cols-4
+md:grid-cols-5
 gap-3
 pt-2
 border-t
@@ -1066,13 +1097,13 @@ border-t
 <div>
 
 <p className="text-gray-500 text-sm">
-Amount
+Gross
 </p>
 
 <p className="font-bold text-xl text-green-700">
 
 ₹{Number(
-b.net_amount || 0
+b.gross_amount || 0
 ).toLocaleString("en-IN")}
 
 </p>
@@ -1100,7 +1131,25 @@ collected.toLocaleString(
 <div>
 
 <p className="text-gray-500 text-sm">
-Pending
+Deductions
+</p>
+
+<p className="font-semibold">
+
+₹{
+otaDeductions.toLocaleString(
+"en-IN"
+)
+}
+
+</p>
+
+</div>
+
+<div>
+
+<p className="text-gray-500 text-sm">
+Balance
 </p>
 
 <p className="font-semibold">

@@ -22,6 +22,7 @@ export default function AddBooking() {
     gst_amount: 0,
 
     net_amount: 0,
+    settlement_amount: 0,
     base_amount: 0,
   });
 
@@ -100,6 +101,10 @@ return;
       gst_amount: Number(gst.toFixed(2)),
 
       net_amount: data.net_amount || 0,
+
+      settlement_amount:
+      data.settlement_amount || 0,
+
       base_amount: Number((gross - gst).toFixed(2)),
     });
   }
@@ -345,7 +350,15 @@ setInvoiceError("");
     
     // NET CALCULATION
     updated.net_amount =
-      gross - commission - gst_comm - tds - tcs;
+    gross -
+    Number(updated.gst_amount || 0);
+
+    updated.settlement_amount =
+    gross -
+    commission -
+    gst_comm -
+    tds -
+    tcs;
 
     // GST CALCULATION ONLY WHEN GROSS CHANGES
     if (name === "gross_amount") {
@@ -353,6 +366,7 @@ setInvoiceError("");
          const gst = (gross * 5) / 105;
          updated.gst_amount = Number(gst.toFixed(2));
          updated.base_amount = Number((gross - gst).toFixed(2));
+	 updated.net_amount = Number((gross - gst).toFixed(2));
      } else {
        updated.gst_amount = 0;
        updated.base_amount = 0;
@@ -396,6 +410,7 @@ return;
     tcs: Number(form.tcs || 0),
     gst_amount: Number(form.gst_amount || 0),
     net_amount: Number(form.net_amount || 0),
+    settlement_amount: Number(form.settlement_amount || 0),
   };
 
   let error;
@@ -680,7 +695,11 @@ text-sm
         <hr />
 
         <p className="font-bold">
-         Net (After deductions): ₹{form.net_amount}
+         Net Revenue: ₹{form.net_amount}
+        </p>
+
+        <p className="font-bold">
+        Settlement Amount: ₹{form.settlement_amount}
         </p>
 
       </div>
