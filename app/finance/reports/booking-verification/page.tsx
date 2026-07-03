@@ -1044,6 +1044,9 @@ excelData.push({
 "Invoice No":
 booking.invoice_number,
 
+"Guest Name":
+booking.guest_name,
+
 "Booking Date":
 booking.booking_date,
 
@@ -1089,6 +1092,9 @@ excelData.push({
 
 "Invoice No":
 booking.invoice_number,
+
+"Guest Name":
+booking.guest_name,
 
 "Booking Date":
 booking.booking_date,
@@ -1138,12 +1144,14 @@ excelData
 );
 
 worksheet["!autofilter"] = {
-ref: "A1:L1"
+ref: "A1:M1"
 };
 
 worksheet["!cols"] = [
 
 { wch: 18 }, // Invoice
+
+{ wch: 30 }, // Guest Name
 
 { wch: 15 }, // Booking Date
 
@@ -1653,7 +1661,7 @@ totalBalance
 
 <div className="
 grid
-grid-cols-9
+grid-cols-10
 gap-2
 font-bold
 border-b
@@ -1663,6 +1671,7 @@ text-sm
 ">
 
 <div>Invoice</div>
+<div>Guest Name</div>
 <div>Booking Date</div>
 <div>Checkout Date</div>
 <div>Net</div>
@@ -1791,7 +1800,7 @@ bg-white
 
 <div className="
 grid
-grid-cols-9
+grid-cols-10
 gap-2
 text-sm
 mt-2
@@ -1799,6 +1808,10 @@ mt-2
 
 <div>
 {booking.invoice_number}
+</div>
+
+<div>
+{booking.guest_name}
 </div>
 
 <div>
