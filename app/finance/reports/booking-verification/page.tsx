@@ -227,8 +227,59 @@ payment.booking_id
 
 };
 
+const getBookingVerificationDetails = (booking:any) => {
+  const bookingPayments = getBookingPayments(booking.id);
+
+  const paid = bookingPayments.reduce(
+    (sum, p) => sum + Number(p.payment_amount || 0),
+    0
+  );
+
+  const settledAmount =
+    paid +
+    Number(booking.commission_amount || 0) +
+    Number(booking.gst_on_commission || 0) +
+    Number(booking.tds || 0) +
+    Number(booking.tcs || 0);
+
+  const gross = Number(booking.gross_amount || 0);
+  const gst = Number(booking.gst_amount || 0);
+  const net = gross - gst;
+  const balance = gross - settledAmount;
+
+  let statusText = "PARTIAL";
+
+  if (paid === 0) {
+    statusText = "NO PAYMENT";
+  } else if (paid > gross) {
+    statusText = "OVERPAID";
+  } else if (balance === 0) {
+    statusText = "PAID";
+  }
+
+  return {
+    bookingPayments,
+    paid,
+    settledAmount,
+    gross,
+    gst,
+    net,
+    balance,
+    statusText,
+  };
+};
+
+const filteredReportData = reportData.filter((booking:any) => {
+  const { statusText } = getBookingVerificationDetails(booking);
+
+  if (status === "All") {
+    return true;
+  }
+
+  return statusText === status.toUpperCase();
+});
 const reportSummary =
-reportData.reduce(
+filteredReportData.reduce(
 (acc,booking)=>{
 
 const bookingPayments =
@@ -343,7 +394,7 @@ overpaidBookings:0
 );
 
 const totalBalance =
-reportData.reduce(
+filteredReportData.reduce(
 (sum,booking)=>{
 
 const bookingPayments =
@@ -553,8 +604,7 @@ currentY += 6;
 
 doc.setFontSize(9);
 
-reportData
-
+filteredReportData
 .filter(
 (booking:any)=>{
 
@@ -854,8 +904,7 @@ const exportExcel = () => {
 
 const excelData:any[] = [];
 
-reportData
-
+filteredReportData
 .filter(
 (booking:any)=>{
 
