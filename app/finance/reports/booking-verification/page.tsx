@@ -799,6 +799,72 @@ currentY += 12;
 }
 );
 
+if (currentY > 220) {
+  doc.addPage();
+  currentY = 20;
+}
+
+currentY += 6;
+
+doc.setFontSize(12);
+doc.text(
+  "FINAL SUMMARY",
+  14,
+  currentY
+);
+
+currentY += 8;
+
+doc.setFontSize(9);
+
+const pdfSummaryRows = [
+  ["Total Bookings", reportSummary.bookings],
+  ["Net Amount", reportSummary.net],
+  ["GST Amount", reportSummary.gst],
+  ["Gross Amount", reportSummary.gross],
+  ["Paid / Received", reportSummary.paid],
+  ["Commission", reportSummary.commission],
+  ["Commission GST", reportSummary.commissionGst],
+  ["TDS", reportSummary.tds],
+  ["TCS", reportSummary.tcs],
+  ["Total Deductions", reportSummary.totalDeductions],
+  ["Verified Amount", reportSummary.settledAmount],
+  ["Balance", reportSummary.balance],
+  ["Paid Bookings", reportSummary.paidBookings],
+  ["Partial Bookings", reportSummary.partialBookings],
+  ["No Payment", reportSummary.noPaymentBookings],
+  ["Overpaid", reportSummary.overpaidBookings],
+];
+
+pdfSummaryRows.forEach(([label, value]) => {
+  if (currentY > 280) {
+    doc.addPage();
+    currentY = 20;
+  }
+
+  doc.text(
+    String(label),
+    20,
+    currentY
+  );
+
+  doc.text(
+    typeof value === "number"
+      ? value.toLocaleString("en-IN", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        })
+      : String(value),
+    120,
+    currentY,
+    {
+      align:"right"
+    }
+  );
+
+  currentY += 6;
+});
+
 doc.save(
 `BookingVerification-${property}.pdf`
 );
