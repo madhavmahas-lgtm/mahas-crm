@@ -227,6 +227,7 @@ payment.booking_id
 
 };
 
+
 const getBookingVerificationDetails = (booking:any) => {
   const bookingPayments = getBookingPayments(booking.id);
 
@@ -235,17 +236,25 @@ const getBookingVerificationDetails = (booking:any) => {
     0
   );
 
-  const settledAmount =
-    paid +
-    Number(booking.commission_amount || 0) +
-    Number(booking.gst_on_commission || 0) +
-    Number(booking.tds || 0) +
-    Number(booking.tcs || 0);
+  const commission = Number(booking.commission_amount || 0);
+const commissionGst = Number(booking.gst_on_commission || 0);
+const tds = Number(booking.tds || 0);
+const tcs = Number(booking.tcs || 0);
 
-  const gross = Number(booking.gross_amount || 0);
-  const gst = Number(booking.gst_amount || 0);
-  const net = gross - gst;
-  const balance = gross - settledAmount;
+const totalDeductions =
+  commission +
+  commissionGst +
+  tds +
+  tcs;
+
+const settledAmount =
+  paid +
+  totalDeductions;
+
+const gross = Number(booking.gross_amount || 0);
+const gst = Number(booking.gst_amount || 0);
+const net = gross - gst;
+const balance = gross - settledAmount;
 
   let statusText = "PARTIAL";
 
@@ -258,15 +267,20 @@ const getBookingVerificationDetails = (booking:any) => {
   }
 
   return {
-    bookingPayments,
-    paid,
-    settledAmount,
-    gross,
-    gst,
-    net,
-    balance,
-    statusText,
-  };
+  bookingPayments,
+  paid,
+  commission,
+  commissionGst,
+  tds,
+  tcs,
+  totalDeductions,
+  settledAmount,
+  gross,
+  gst,
+  net,
+  balance,
+  statusText
+};
 };
 
 const filteredReportData = reportData.filter((booking:any) => {
@@ -278,181 +292,71 @@ const filteredReportData = reportData.filter((booking:any) => {
 
   return statusText === status.toUpperCase();
 });
-const reportSummary =
-filteredReportData.reduce(
-(acc,booking)=>{
 
-const bookingPayments =
-getBookingPayments(
-booking.id
-);
+const reportSummary = filteredReportData.reduce(
+  (acc, booking:any) => {
+    const {
+  paid,
+  commission,
+  commissionGst,
+  tds,
+  tcs,
+  totalDeductions,
+  settledAmount,
+  gross,
+  gst,
+  net,
+  balance,
+  statusText
+} = getBookingVerificationDetails(booking);
 
-const paid =
-bookingPayments.reduce(
-(sum,p)=>
+    acc.bookings += 1;
+    acc.net += net;
+    acc.gst += gst;
+    acc.gross += gross;
+    acc.paid += paid;
+    acc.balance += balance;
+acc.commission += commission;
+acc.commissionGst += commissionGst;
+acc.tds += tds;
+acc.tcs += tcs;
+acc.totalDeductions += totalDeductions;
+acc.settledAmount += settledAmount;
 
-sum +
-Number(
-p.payment_amount || 0
-),
+    if (statusText === "PAID") {
+      acc.paidBookings += 1;
+    } else if (statusText === "PARTIAL") {
+      acc.partialBookings += 1;
+    } else if (statusText === "NO PAYMENT") {
+      acc.noPaymentBookings += 1;
+    } else if (statusText === "OVERPAID") {
+      acc.overpaidBookings += 1;
+    }
 
-0
-);
-
-const settledAmount =
-
-paid
-
-+
-
-Number(
-booking.commission_amount || 0
-)
-
-+
-
-Number(
-booking.gst_on_commission || 0
-)
-
-+
-
-Number(
-booking.tds || 0
-)
-
-+
-
-Number(
-booking.tcs || 0
-);
-
-const gross =
-Number(
-booking.gross_amount || 0
-);
-
-const balance =
-gross - settledAmount;
-
-if(
-paid === 0
-){
-
-acc.noPaymentBookings += 1;
-
-}
-else if(
-paid > gross
-){
-
-acc.overpaidBookings += 1;
-
-}
-else if(
-balance === 0
-){
-
-acc.paidBookings += 1;
-
-}
-else{
-
-acc.partialBookings += 1;
-
-}
-
-acc.bookings += 1;
-
-acc.gross +=
-Number(
-booking.gross_amount || 0
-);
-
-acc.gst +=
-Number(
-booking.gst_amount || 0
-);
-
-acc.paid += paid;
-
-return acc;
-
-},
-
-{
-bookings:0,
-gross:0,
+    return acc;
+  },
+  {
+    bookings:0,
+net:0,
 gst:0,
+gross:0,
 paid:0,
+commission:0,
+commissionGst:0,
+tds:0,
+tcs:0,
+totalDeductions:0,
+settledAmount:0,
+balance:0,
 
-paidBookings:0,
-partialBookings:0,
-noPaymentBookings:0,
-overpaidBookings:0
-}
+    paidBookings:0,
+    partialBookings:0,
+    noPaymentBookings:0,
+    overpaidBookings:0
+  }
 );
 
-const totalBalance =
-filteredReportData.reduce(
-(sum,booking)=>{
-
-const bookingPayments =
-getBookingPayments(
-booking.id
-);
-
-const paid =
-bookingPayments.reduce(
-(total,p)=>
-total +
-Number(
-p.payment_amount || 0
-),
-0
-);
-
-const settledAmount =
-
-paid
-
-+
-
-Number(
-booking.commission_amount || 0
-)
-
-+
-
-Number(
-booking.gst_on_commission || 0
-)
-
-+
-
-Number(
-booking.tds || 0
-)
-
-+
-
-Number(
-booking.tcs || 0
-);
-
-const gross =
-Number(
-booking.gross_amount || 0
-);
-
-return sum + (
-gross - settledAmount
-);
-
-},
-0
-);
-
+const totalBalance = reportSummary.balance;
 const exportPdf = ()=>{
 
 const doc =
@@ -1187,6 +1091,39 @@ payment.payment_amount
 
 });
 
+excelData.push({});
+
+excelData.push({
+  "Invoice No":"FINAL SUMMARY",
+  "Guest Name":"",
+  "Booking Date":"",
+  "Checkout Date":"",
+  "Net Amount":reportSummary.net,
+  "GST Amount":reportSummary.gst,
+  "Gross Amount":reportSummary.gross,
+  "Paid Amount":reportSummary.paid,
+  "Balance":reportSummary.balance,
+  "Status":`Bookings: ${reportSummary.bookings}`,
+  "Payment Date":"",
+  "Payment Mode":"",
+  "Payment Amount":reportSummary.paid
+});
+
+excelData.push({
+  "Invoice No":"Commission",
+  "Guest Name":reportSummary.commission,
+  "Booking Date":"Commission GST",
+  "Checkout Date":reportSummary.commissionGst,
+  "Net Amount":"TDS",
+  "GST Amount":reportSummary.tds,
+  "Gross Amount":"TCS",
+  "Paid Amount":reportSummary.tcs,
+  "Balance":"Total Deductions",
+  "Status":reportSummary.totalDeductions,
+  "Payment Date":"Verified Amount",
+  "Payment Mode":reportSummary.settledAmount,
+  "Payment Amount":""
+});
 const worksheet =
 XLSX.utils.json_to_sheet(
 excelData
@@ -1283,6 +1220,36 @@ Value:reportSummary.gross
 {
 Metric:"Total Paid",
 Value:reportSummary.paid
+},
+
+{
+  Metric:"Commission",
+  Value:reportSummary.commission
+},
+
+{
+  Metric:"Commission GST",
+  Value:reportSummary.commissionGst
+},
+
+{
+  Metric:"TDS",
+  Value:reportSummary.tds
+},
+
+{
+  Metric:"TCS",
+  Value:reportSummary.tcs
+},
+
+{
+  Metric:"Total Deductions",
+  Value:reportSummary.totalDeductions
+},
+
+{
+  Metric:"Verified Amount",
+  Value:reportSummary.settledAmount
 },
 
 {
@@ -1735,7 +1702,7 @@ text-sm
 
 
 
-reportData.map(
+filteredReportData.map(
 (booking:any)=>{
 
 const bookingPayments =
@@ -2013,11 +1980,125 @@ No Payments Recorded
 
 </div>
 
+<div className="
+  border-2
+  border-black
+  rounded
+  p-4
+  bg-white
+  mt-6
+  font-semibold
+">
+
+  <h2 className="text-lg font-bold mb-4">
+    Final Summary
+  </h2>
+
+  <div className="grid grid-cols-4 gap-4 text-sm">
+
+    <div>
+      Total Bookings
+      <br />
+      {reportSummary.bookings}
+    </div>
+
+    <div>
+      Net Amount
+      <br />
+      ₹{reportSummary.net.toLocaleString()}
+    </div>
+
+    <div>
+      GST Amount
+      <br />
+      ₹{reportSummary.gst.toLocaleString()}
+    </div>
+
+    <div>
+      Gross Amount
+      <br />
+      ₹{reportSummary.gross.toLocaleString()}
+    </div>
+
+    <div>
+      Paid / Received
+      <br />
+      ₹{reportSummary.paid.toLocaleString()}
+    </div>
+
+    <div>
+      Commission
+      <br />
+      ₹{reportSummary.commission.toLocaleString()}
+    </div>
+
+    <div>
+      Commission GST
+      <br />
+      ₹{reportSummary.commissionGst.toLocaleString()}
+    </div>
+
+    <div>
+      TDS
+      <br />
+      ₹{reportSummary.tds.toLocaleString()}
+    </div>
+
+    <div>
+      TCS
+      <br />
+      ₹{reportSummary.tcs.toLocaleString()}
+    </div>
+
+    <div>
+      Total Deductions
+      <br />
+      ₹{reportSummary.totalDeductions.toLocaleString()}
+    </div>
+
+    <div>
+      Verified Amount
+      <br />
+      ₹{reportSummary.settledAmount.toLocaleString()}
+    </div>
+
+    <div>
+      Balance
+      <br />
+      ₹{reportSummary.balance.toLocaleString()}
+    </div>
+
+    <div>
+      Paid Bookings
+      <br />
+      {reportSummary.paidBookings}
+    </div>
+
+    <div>
+      Partial Bookings
+      <br />
+      {reportSummary.partialBookings}
+    </div>
+
+    <div>
+      No Payment
+      <br />
+      {reportSummary.noPaymentBookings}
+    </div>
+
+    <div>
+      Overpaid
+      <br />
+      {reportSummary.overpaidBookings}
+    </div>
+
+  </div>
+
+</div>
 </div>
 
 }
 
 </div>
 );
-
 }
